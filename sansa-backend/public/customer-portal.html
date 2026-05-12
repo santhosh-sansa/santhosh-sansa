@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SANSA Customer Portal</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="index.html"><span class="brand-mark">S</span><strong>SANSA</strong></a>
+    <button id="mobileMenuBtn" class="hamburger" type="button" aria-label="Open menu">☰</button>
+    <nav id="mainNav" class="main-nav">
+      <a href="index.html">Home</a>
+      <a href="invoice.html">Invoice</a>
+      <a href="cfo-dashboard.html">AI CFO</a>
+    </nav>
+    <button class="upgrade-btn" type="button" data-upgrade>Upgrade</button>
+  </header>
+
+  <main class="page-wrap">
+    <section class="page-title">
+      <span class="eyebrow">Customer Portal</span>
+      <h1>Dummy invoices and payment status</h1>
+      <p>Static demo data for customer invoice view, payment link and proof upload flow.</p>
+    </section>
+
+    <section class="portal-list">
+      <article>
+        <strong>INV-1001</strong>
+        <span>Raj Stores</span>
+        <b>₹11,800</b>
+        <em>Pending</em>
+        <button type="button" data-payment-demo>Pay Now</button>
+      </article>
+      <article>
+        <strong>INV-1002</strong>
+        <span>Kumar Agency</span>
+        <b>₹5,900</b>
+        <em class="paid">Paid</em>
+        <button type="button" data-proof-demo>View Proof</button>
+      </article>
+      <article>
+        <strong>INV-1003</strong>
+        <span>Sri Tech</span>
+        <b>₹23,600</b>
+        <em>Pending</em>
+        <button type="button" data-payment-demo>Pay Now</button>
+      </article>
+    </section>
+  </main>
+
+  <script src="js/main.js" defer></script>
+  <script src="js/business.js" defer></script>
+</body>
+</html>

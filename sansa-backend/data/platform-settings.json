@@ -1,0 +1,23 @@
+{
+  "promo": {
+    "label": "Launch offer:",
+    "text": "Save over 55% for the first year on SANSA Creative Pro.",
+    "cta": "Save now"
+  },
+  "hero": {
+    "title": "Create something new with SANSA AI.",
+    "subtitle": "Get creative, PDF, business and AI tools in one SANSA workspace.",
+    "price": "Start free. Upgrade from Rs 199/mo.",
+    "primary": "Free trial",
+    "secondary": "Save today"
+  },
+  "enabledFamilies": [
+    "featured",
+    "generative",
+    "pdf",
+    "business",
+    "hrms",
+    "assistant",
+    "payments"
+  ]
+}

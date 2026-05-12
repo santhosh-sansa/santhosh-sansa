@@ -4,7 +4,11 @@
 
 ### Project overview
 
-SANSA AI is a full-stack AI chatbot web application (React 19 + Express 5 + PostgreSQL) organized as a pnpm workspace monorepo. Source code is stored in `.rar` archives that must be extracted before development (see below).
+This repository contains **two codebases**:
+
+1. **SANSA AI Chatbot** (Replit monorepo) — React 19 + Express 5 + Drizzle ORM, in `.rar` archives at workspace root. This is the original chatbot at the `/artifacts/` and `/lib/` directories.
+
+2. **SANSA Creative Platform** (`sansa-backend/` + `sansa-backend/public/`) — The production website at [sansaai.in](https://sansaai.in). Node.js + Express 4 + PostgreSQL with static HTML/CSS/JS frontend. Features: Creative Studio, PDF tools, HRMS, payments (Razorpay/UPI), AI search, admin panel.
 
 ### RAR extraction
 
@@ -61,3 +65,39 @@ The frontend runs Vite dev server with hot module replacement.
 - The `onlyBuiltDependencies` list in `pnpm-workspace.yaml` already covers common native deps (`@swc/core`, `esbuild`, `msw`, `unrs-resolver`). `core-js` build script is intentionally ignored.
 - `AI_INTEGRATIONS_OPENAI_BASE_URL` must be the API endpoint (e.g. `https://api.openai.com/v1`), **not** the web dashboard URL (`https://platform.openai.com/...`). The server will start either way but API calls will fail with Cloudflare challenge pages if the wrong URL is used.
 - The chat endpoint uses model `gpt-5.2` hardcoded in `artifacts/api-server/src/routes/openai/conversations.ts`. If the OpenAI account doesn't have access to this model, chat will fail.
+
+### SANSA Creative Platform (sansaai.in)
+
+#### Quick start
+
+```
+cd sansa-backend
+cp .env.example .env   # then edit DATABASE_URL and other values
+npm install
+node index.cjs
+```
+
+The server starts on `PORT` (default 8080, use 3000 if old chatbot API is running on 8080). It serves both the API (`/api/...`, `/admin/...`) and the frontend (`public/` directory) from the same port.
+
+#### Environment variables
+
+See `sansa-backend/.env.example` for the full list. Key ones:
+- `DATABASE_URL` — PostgreSQL connection string (optional; runs in JSON file-based demo mode without it)
+- `DATABASE_SSL=false` — required for local PostgreSQL
+- `ADMIN_USERNAME` / `ADMIN_PASSWORD` — admin panel credentials
+- `USE_OPENAI=false` — set true + `OPENAI_API_KEY` for AI features
+- `FREE_WEB_SEARCH=true` — enables DuckDuckGo fallback search
+
+#### Frontend config
+
+`sansa-backend/public/sansa-config.js` controls the API base URL. For local dev, `localhost` is auto-detected and API calls go to the same origin. In production, it points to `https://api.sansaai.in`.
+
+#### Database
+
+Schema auto-creates on startup via `initDatabase()` in `src/services/db.js`. No manual migration needed. For a fresh setup: `sudo -u postgres createdb sansa_platform`
+
+#### Gotchas
+
+- The `connect-pg-simple` session store logs a harmless `relation "IDX_session_expire" already exists` warning on restart. Ignore it.
+- The `/api/search` endpoint may error with "headers already sent" — this is a pre-existing code issue.
+- The backend has a nested zip (`Backend_SANSA_ADOBE_FULL_PLATFORM_2026_CPANEL_SAFE.zip`) which is a cPanel deployment bundle — not needed for local dev.

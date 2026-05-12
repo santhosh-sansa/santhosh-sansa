@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#111111">
+  <title>SANSA AI | Creative, PDF, HRMS and Business AI Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=sansa-adobe-full-platform-2026-v1">
+</head>
+<body>
+  <div class="promo-bar" id="promoBar">
+    <strong>Launch offer:</strong> Start SANSA Creative Cloud-style workspace with free AI credits.
+    <button class="promo-button" data-open-auth="register">Start free</button>
+  </div>
+
+  <header class="site-header">
+    <a class="brand" href="#home" aria-label="SANSA home">
+      <img src="sansa-logo.png" alt="" onerror="this.style.display='none'">
+      <span>SANSA</span>
+    </a>
+    <nav class="top-nav" aria-label="Primary navigation">
+      <button class="nav-link" data-menu="creativity">Creativity & Design</button>
+      <button class="nav-link" data-menu="pdf">PDF & E-signatures</button>
+      <button class="nav-link" data-menu="marketing">Marketing & Commerce</button>
+      <button class="nav-link" data-menu="hrms">HRMS</button>
+      <button class="nav-link" data-menu="support">Help & Support</button>
+    </nav>
+    <div class="header-actions">
+      <button class="icon-grid" id="appSwitcherBtn" aria-label="Open app switcher"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></button>
+      <button class="ghost-button" data-route="pricing">View Pricing</button>
+      <button class="primary-button" id="signinButton" data-open-auth="login">Sign in</button>
+      <button class="avatar-button hidden" id="profileButton" aria-label="Open profile menu">SA</button>
+    </div>
+  </header>
+
+  <section class="mega-menu hidden" id="megaMenu" aria-live="polite"></section>
+  <section class="app-switcher hidden" id="appSwitcher" aria-label="App switcher"></section>
+  <section class="profile-menu hidden" id="profileMenu" aria-label="Profile menu"></section>
+
+  <main id="app">
+    <section class="hero-section" id="homeView">
+      <div class="hero-copy">
+        <span class="eyebrow">SANSA Creative Platform</span>
+        <h1 id="heroTitle">Create something new with SANSA AI.</h1>
+        <p id="heroSubtitle">Design visuals, edit PDFs, automate HR, manage payments and run AI workflows in one SANSA workspace.</p>
+        <div class="hero-actions">
+          <button class="outline-dark" data-open-auth="register">Free trial</button>
+          <button class="primary-button" data-route="pricing">Save today</button>
+        </div>
+      </div>
+      <div class="hero-art" aria-label="SANSA creative workspace preview">
+        <div class="shape-board">
+          <span class="shape-panel panel-pink"></span>
+          <span class="shape-panel panel-blue"></span>
+          <span class="shape-panel panel-yellow"></span>
+        </div>
+        <div class="studio-card">
+          <span class="badge">AI</span>
+          <h2>SANSA Creative Studio</h2>
+          <p>Image, poster, logo, video, PDF and business workflows.</p>
+          <div class="tool-grid">
+            <span>Image</span><span>Poster</span><span>PDF</span><span>HRMS</span><span>Pay</span><span>Stock</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="story-grid" id="storyGrid"></section>
+    <section class="catalog-section" id="appsView">
+      <div class="section-heading">
+        <h2>All SANSA apps</h2>
+        <p>Install-ready product cards for creative, PDF, business, HRMS and AI services.</p>
+      </div>
+      <div class="category-tabs" id="categoryTabs"></div>
+      <div class="apps-grid" id="appsGrid"></div>
+    </section>
+
+    <section class="pricing-section hidden" id="pricingView">
+      <div class="section-heading centered">
+        <h2>Plans and pricing for SANSA apps and more.</h2>
+        <p>Provider-ready checkout now, Razorpay or UPI keys can be added from MilesWeb environment variables.</p>
+      </div>
+      <div class="pricing-tabs" id="pricingTabs"></div>
+      <div class="pricing-grid" id="pricingGrid"></div>
+    </section>
+
+    <section class="workspace hidden" id="dashboardView">
+      <aside class="workspace-sidebar">
+        <button class="side-item active" data-workspace-tab="home">Home</button>
+        <button class="side-item" data-workspace-tab="apps">Apps</button>
+        <button class="side-item" data-workspace-tab="files">Files</button>
+        <button class="side-item" data-workspace-tab="create">Create</button>
+      </aside>
+      <section class="workspace-main">
+        <div class="workspace-hero">
+          <h2>Create something new</h2>
+          <div class="prompt-box">
+            <label for="promptInput">Prompt</label>
+            <textarea id="promptInput" placeholder="Describe what you want to generate"></textarea>
+            <button class="primary-button" id="generateMock">Generate</button>
+          </div>
+        </div>
+        <div class="workspace-cards" id="workspaceCards"></div>
+        <section class="ai-tools-section">
+          <div class="section-heading dark-heading">
+            <h2>AI creative tools</h2>
+            <p>Image, video, photo, translation, sound, music and assistant workflows are ready with SANSA fallback outputs.</p>
+          </div>
+          <div class="ai-tools-grid" id="aiToolsGrid"></div>
+          <div class="ai-history" id="aiHistory"></div>
+        </section>
+      </section>
+      <aside class="recent-panel">
+        <h3>Recent files</h3>
+        <div class="empty-file">No recent files yet</div>
+        <button class="outline-light">Upload</button>
+      </aside>
+    </section>
+  </main>
+
+  <section class="modal hidden" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <div class="auth-shell">
+      <div class="auth-visual">
+        <div class="auth-brand">SANSA</div>
+        <p>Sign in or create an account</p>
+      </div>
+      <div class="auth-card">
+        <button class="close-button" id="closeAuth" aria-label="Close">x</button>
+        <div class="auth-tabs">
+          <button class="active" data-auth-tab="login">Sign in</button>
+          <button data-auth-tab="register">Create account</button>
+        </div>
+        <div id="authMessage" class="message hidden"></div>
+        <form id="loginForm" class="auth-panel">
+          <h2 id="authTitle">Sign in</h2>
+          <label>Email address<input type="email" id="loginEmail" autocomplete="email" required></label>
+          <label>Password<input type="password" id="loginPassword" autocomplete="current-password" required></label>
+          <button class="primary-button full" type="submit">Continue</button>
+          <div class="divider">Or</div>
+          <div class="social-list">
+            <button type="button" data-social="Google">Continue with Google</button>
+            <button type="button" data-social="Facebook">Continue with Facebook</button>
+            <button type="button" data-social="Apple">Continue with Apple</button>
+            <button type="button" data-social="Microsoft">Continue with Microsoft</button>
+            <button type="button" id="guestDemoBtn">Guest demo</button>
+          </div>
+        </form>
+        <form id="registerForm" class="auth-panel hidden">
+          <h2>Create an account</h2>
+          <label>Full name<input type="text" id="regName" autocomplete="name" required></label>
+          <label>Email address<input type="email" id="regEmail" autocomplete="email" required></label>
+          <label>Mobile number<input type="tel" id="regMobile" autocomplete="tel" required></label>
+          <label>Password<input type="password" id="regPassword" autocomplete="new-password" required></label>
+          <label>Confirm password<input type="password" id="regConfirm" autocomplete="new-password" required></label>
+          <label>User type
+            <select id="regUserType">
+              <option value="business-owner">Business Owner</option>
+              <option value="creator">Creator</option>
+              <option value="student">Student</option>
+              <option value="developer">Developer</option>
+            </select>
+          </label>
+          <button class="primary-button full" type="submit">Register & continue</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <section class="admin-panel hidden" id="adminPanel">
+    <div class="admin-card">
+      <button class="close-button" id="closeAdmin">x</button>
+      <h2>Admin control</h2>
+      <div id="adminStatus" class="message hidden"></div>
+      <div class="admin-grid">
+        <label>Promo text<input id="adminPromoText"></label>
+        <label>Hero title<input id="adminHeroTitle"></label>
+        <label>Hero subtitle<textarea id="adminHeroSubtitle"></textarea></label>
+      </div>
+      <div class="admin-actions">
+        <button class="primary-button" id="saveAdminSettings">Save settings</button>
+        <button class="ghost-button" id="refreshUsers">Refresh users</button>
+      </div>
+      <div class="admin-stats" id="adminStats"></div>
+      <div class="admin-users" id="adminUsers"></div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div>
+      <strong>SANSA AI</strong>
+      <p>Original SANSA platform inspired by familiar creative-suite workflows.</p>
+    </div>
+    <div class="footer-links">
+      <a href="#apps">All apps</a>
+      <a href="#pricing">Plans</a>
+      <a href="#support">Support</a>
+      <a href="#privacy">Privacy</a>
+    </div>
+  </footer>
+
+  <script src="sansa-config.js"></script>
+  <script src="app.js?v=sansa-adobe-full-platform-2026-v1"></script>
+</body>
+</html>
