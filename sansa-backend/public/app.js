@@ -445,6 +445,89 @@
     }
   }
 
+  const toolFormEndpoints = {
+    'text-to-pdf': { method: 'POST', endpoint: '/api/tools/text-to-pdf', json: true },
+    'pdf-to-text': { method: 'POST', endpoint: '/api/tools/pdf-to-text', file: true },
+    'merge-pdf': { method: 'POST', endpoint: '/api/tools/document-workflow', json: true, extraBody: { action: 'merge' } },
+    'compress-pdf': { method: 'POST', endpoint: '/api/tools/document-workflow', json: true, extraBody: { action: 'compress' } },
+    'chat-pdf': { method: 'POST', endpoint: '/api/tools/pdf-workflow', file: true },
+    'esign-pdf': { method: 'POST', endpoint: '/api/tools/text-to-pdf', json: true },
+    'gen-image': { method: 'POST', endpoint: '/api/creative/image', json: true },
+    'enhance-photo': { method: 'POST', endpoint: '/api/creative/photo-edit', file: true },
+    'remove-bg': { method: 'POST', endpoint: '/api/creative/photo-edit', file: true, extraBody: { effect: 'background-ready' } },
+    'resize-image': { method: 'POST', endpoint: '/api/creative/photo-edit', file: true },
+    'edit-video': { method: 'POST', endpoint: '/api/creative/video', file: true },
+    'translate-video': { method: 'POST', endpoint: '/api/creative/translate', json: true },
+    'storyboard': { method: 'POST', endpoint: '/api/ai/assistant', json: true },
+    'gen-sound': { method: 'POST', endpoint: '/api/creative/sound', json: true },
+    'gen-music': { method: 'POST', endpoint: '/api/creative/music', json: true },
+    'poster': { method: 'POST', endpoint: '/api/creative/image', json: true },
+    'logo': { method: 'POST', endpoint: '/api/creative/image', json: true },
+    'social-template': { method: 'POST', endpoint: '/api/creative/image', json: true },
+    'business-card': { method: 'POST', endpoint: '/api/creative/image', json: true },
+    'quick-design': { method: 'POST', endpoint: '/api/creative/image', json: true },
+    'quick-video': { method: 'POST', endpoint: '/api/ai/assistant', json: true },
+    'quick-pdf': { method: 'POST', endpoint: '/api/tools/text-to-pdf', json: true },
+    'qr-code': { method: 'POST', endpoint: '/api/services/draft', json: true },
+    'add-employee': { method: 'POST', endpoint: '/api/services/draft', json: true, extraBody: { type: 'hr-employee' } },
+    'attendance': { method: 'POST', endpoint: '/api/services/draft', json: true, extraBody: { type: 'hr-attendance' } },
+    'leave-request': { method: 'POST', endpoint: '/api/services/draft', json: true, extraBody: { type: 'hr-leave' } },
+    'payroll': { method: 'POST', endpoint: '/api/services/draft', json: true, extraBody: { type: 'hr-payroll' } },
+    'offer-letter': { method: 'POST', endpoint: '/api/services/draft', json: true, extraBody: { type: 'hr-offer' } },
+    'hr-assistant': { method: 'POST', endpoint: '/api/ai/assistant', json: true },
+    'create-invoice': { method: 'POST', endpoint: '/api/payments/create-link', json: true },
+    'payment-link': { method: 'POST', endpoint: '/api/payments/create-link', json: true },
+    'gst-report': { method: 'POST', endpoint: '/api/services/draft', json: true, extraBody: { type: 'gst-report' } },
+    'cfo-dashboard': { method: 'POST', endpoint: '/api/services/draft', json: true, extraBody: { type: 'cfo-dashboard' } },
+    'customer-ledger': { method: 'POST', endpoint: '/api/services/draft', json: true, extraBody: { type: 'customer-ledger' } },
+  };
+
+  async function handleToolSubmit(event) {
+    const form = event.target.closest('[data-tool-form]');
+    if (!form) return;
+    event.preventDefault();
+    if (!state.user) { openAuth('login'); return; }
+    const toolId = form.dataset.toolForm;
+    const config = toolFormEndpoints[toolId];
+    if (!config) return;
+    const button = form.querySelector('button[type="submit"]');
+    const prev = button.textContent;
+    button.textContent = 'Processing...';
+    button.disabled = true;
+    const outputEl = $(`#output-${CSS.escape(toolId)}`);
+    try {
+      const formData = new FormData(form);
+      const options = { method: config.method, credentials: 'include' };
+      if (config.file) {
+        if (config.extraBody) Object.entries(config.extraBody).forEach(([k, v]) => formData.append(k, v));
+        options.body = formData;
+      } else {
+        options.headers = { 'Content-Type': 'application/json' };
+        const body = Object.fromEntries(formData.entries());
+        if (config.extraBody) Object.assign(body, config.extraBody);
+        options.body = JSON.stringify(body);
+      }
+      const res = await fetch(apiUrl(config.endpoint), options);
+      const data = await res.json().catch(() => ({}));
+      if (outputEl) {
+        outputEl.classList.remove('hidden');
+        if (data.imageUrl) outputEl.innerHTML = `<strong>✅ Generated</strong><img src="${h(data.imageUrl)}" alt="Output">`;
+        else if (data.videoUrl) outputEl.innerHTML = `<strong>✅ Video ready</strong><video controls src="${h(data.videoUrl)}"></video>`;
+        else if (data.soundUrl || data.musicUrl) outputEl.innerHTML = `<strong>✅ Audio ready</strong><audio controls src="${h(data.soundUrl || data.musicUrl)}"></audio>`;
+        else if (data.text) outputEl.innerHTML = `<strong>✅ Output</strong>\n${h(data.text)}`;
+        else if (data.reply) outputEl.innerHTML = `<strong>✅ AI Response</strong>\n${h(data.reply)}`;
+        else if (data.draft) outputEl.innerHTML = `<strong>✅ Draft</strong>\n${h(typeof data.draft === 'string' ? data.draft : JSON.stringify(data.draft, null, 2))}`;
+        else if (data.ok || data.success) outputEl.innerHTML = `<strong>✅ Success</strong>\n${h(data.message || JSON.stringify(data, null, 2))}`;
+        else outputEl.innerHTML = `<strong>⚠️ Response</strong>\n${h(data.error || data.message || JSON.stringify(data, null, 2))}`;
+      }
+    } catch (error) {
+      if (outputEl) { outputEl.classList.remove('hidden'); outputEl.innerHTML = `<strong>❌ Error</strong>\n${h(error.message)}`; }
+    } finally {
+      button.textContent = prev;
+      button.disabled = false;
+    }
+  }
+
   function renderAuthState() {
     const user = state.user;
     $('#signinButton').classList.toggle('hidden', Boolean(user));
@@ -521,10 +604,31 @@
     const menu = $('#megaMenu');
     menu.innerHTML = `
       <div class="mega-inner">
-        ${data.columns.map(([heading, items]) => `
+          ${data.columns.map(([heading, items]) => `
           <div class="mega-column">
             <h3>${h(heading)}</h3>
-            ${items.map((item) => `<a class="mega-link" href="#apps">${h(item)}<small>${h(data.title)}</small></a>`).join('')}
+            ${items.map((item) => {
+              const itemKey = item.toLowerCase().replace(/\s+/g, '-').replace(/^sansa-/, '');
+              const megaRoutes = {
+                'image-studio': 'image-studio', 'video-studio': 'video-studio', 'express': 'express',
+                'vector-designer': 'creative-studio', 'stock': 'dashboard', 'firefly': 'firefly',
+                'pdf-studio': 'pdf-studio', 'acrobat-pro-tools': 'pdf-studio', 'ai-assistant-for-pdf': 'pdf-studio',
+                'e-signature': 'pdf-studio', 'pdf-reader': 'pdf-studio',
+                'edit-pdf': 'pdf-studio', 'chat-with-pdf': 'pdf-studio', 'pdf-to-word': 'pdf-studio',
+                'compress-pdf': 'pdf-studio', 'merge-pdf': 'pdf-studio',
+                'ai-image-generator': 'image-studio', 'ai-video-editor': 'video-studio',
+                'ai-photo-editing': 'image-studio', 'ai-translation': 'firefly', 'ai-music-generator': 'firefly',
+                'brand-intelligence': 'invoice', 'engagement-intelligence': 'invoice',
+                'content-marketing': 'creative-studio', 'campaign-automation': 'invoice',
+                'business-os': 'invoice', 'analytics': 'invoice', 'payments': 'invoice', 'customer-portal': 'invoice',
+                'employee-records': 'hrms', 'attendance': 'hrms', 'leave-management': 'hrms',
+                'payroll-ready-data': 'hrms', 'offer-letters': 'hrms', 'document-requests': 'hrms',
+                'ai-hr-assistant': 'hrms', 'approval-flows': 'hrms',
+                'team-dashboard': 'hrms', 'compliance-reminders': 'hrms', 'hiring-pipeline': 'hrms', 'reports': 'hrms',
+              };
+              const route = megaRoutes[itemKey] || 'apps';
+              return `<a class="mega-link" href="#${route}" data-route="${route}">${h(item)}<small>${h(data.title)}</small></a>`;
+            }).join('')}
           </div>
         `).join('')}
         <div class="mega-promo">
@@ -537,21 +641,75 @@
     menu.classList.remove('hidden');
   }
 
+  const toolViews = ['pdf-studio','image-studio','video-studio','creative-studio','firefly','hrms','invoice','express'];
+  const toolViewIds = {
+    'pdf-studio': 'pdfStudioView',
+    'image-studio': 'imageStudioView',
+    'video-studio': 'videoStudioView',
+    'creative-studio': 'creativeStudioView',
+    'firefly': 'fireflyView',
+    'hrms': 'hrmsView',
+    'invoice': 'invoiceView',
+    'express': 'expressView',
+  };
+
+  const appRouteMap = {
+    'sansa-pdf-studio': 'pdf-studio', 'pdf-studio': 'pdf-studio', 'pdf': 'pdf-studio',
+    'sansa-image-studio': 'image-studio', 'image-studio': 'image-studio', 'photoshop': 'image-studio',
+    'sansa-video-studio': 'video-studio', 'video-studio': 'video-studio', 'premiere': 'video-studio',
+    'sansa-creative-studio': 'creative-studio', 'creative-studio': 'creative-studio',
+    'sansa-firefly-generator': 'firefly', 'firefly': 'firefly', 'sansa-firefly': 'firefly',
+    'sansa-express': 'express', 'express': 'express',
+    'sansa-hrms': 'hrms', 'hrms': 'hrms', 'sansa-hr': 'hrms',
+    'sansa-invoice': 'invoice', 'invoice': 'invoice', 'business': 'invoice', 'sansa-business-os': 'invoice',
+    'sansa-skill-hub': 'pdf-studio',
+  };
+
   function showView(view) {
     const isDashboard = view === 'dashboard';
+    const isToolView = toolViews.includes(view);
     $('#homeView').classList.toggle('hidden', view !== 'home');
     $('#storyGrid').classList.toggle('hidden', view !== 'home');
     $('#appsView').classList.toggle('hidden', view !== 'home' && view !== 'apps');
     $('#pricingView').classList.toggle('hidden', view !== 'pricing');
     $('#dashboardView').classList.toggle('hidden', !isDashboard);
+    toolViews.forEach((tv) => {
+      const el = $(`#${toolViewIds[tv]}`);
+      if (el) el.classList.toggle('hidden', view !== tv);
+    });
+    if (isToolView && view === 'firefly') renderFireflyTools();
     window.location.hash = view === 'home' ? '#home' : `#${view}`;
     closePopups();
+    window.scrollTo(0, 0);
   }
 
   function routeFromHash() {
     const view = window.location.hash.replace('#', '') || 'home';
-    if (view === 'pricing' || view === 'apps' || view === 'dashboard') showView(view);
+    if (['pricing', 'apps', 'dashboard'].includes(view) || toolViews.includes(view)) showView(view);
     else showView('home');
+  }
+
+  function renderFireflyTools() {
+    const container = $('#fireflyToolsGrid');
+    if (!container || container.dataset.rendered) return;
+    container.dataset.rendered = '1';
+    container.innerHTML = aiTools.map((tool) => `
+      <div class="tool-card">
+        <i class="tool-emoji">${{ image:'🎨', video:'🎬', photo:'✨', translate:'🌐', sound:'🔊', music:'🎵', assistant:'🤖' }[tool.id] || '⚡'}</i>
+        <h3>${h(tool.name)}</h3>
+        <p>${h(tool.desc)}</p>
+        <form data-ai-form="${h(tool.id)}">
+          ${tool.fields.map((field) => {
+            if (field.type === 'textarea') return '<textarea name="' + h(field.name) + '" placeholder="' + h(field.placeholder || '') + '" rows="3" required></textarea>';
+            if (field.type === 'select') return '<select name="' + h(field.name) + '">' + field.options.map((o) => '<option value="' + h(o) + '">' + h(o) + '</option>').join('') + '</select>';
+            if (field.type === 'file') return '<input type="file" name="' + h(field.name) + '" accept="' + h(field.accept || '*') + '" required>';
+            return '<input type="' + h(field.type || 'text') + '" name="' + h(field.name) + '" placeholder="' + h(field.placeholder || '') + '">';
+          }).join('')}
+          <button class="primary-button full" type="submit">Run tool</button>
+        </form>
+        <div class="tool-result hidden" id="result-${h(tool.id)}"></div>
+      </div>
+    `).join('');
   }
 
   async function handleLogin(event) {
@@ -688,7 +846,10 @@
 
       const openApp = event.target.closest('[data-open-app]');
       if (openApp) {
-        if (!state.user) openAuth('login');
+        if (!state.user) { openAuth('login'); return; }
+        const appId = String(openApp.dataset.openApp || '').toLowerCase().replace(/\s+/g, '-');
+        const route = appRouteMap[appId];
+        if (route) showView(route);
         else showView('dashboard');
       }
 
@@ -739,6 +900,7 @@
     $('#loginForm').addEventListener('submit', handleLogin);
     $('#registerForm').addEventListener('submit', handleRegister);
     document.addEventListener('submit', handleAiSubmit);
+    document.addEventListener('submit', handleToolSubmit);
     $('#guestDemoBtn').addEventListener('click', async () => {
       $('#loginEmail').value = 'demo@sansaai.in';
       $('#loginPassword').value = 'demo123';
