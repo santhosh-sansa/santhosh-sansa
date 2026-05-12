@@ -59,3 +59,5 @@ The frontend runs Vite dev server with hot module replacement.
 - `pnpm run typecheck:libs` and per-artifact `typecheck` scripts have **pre-existing type errors** in the repository. These are not regressions from your changes.
 - Prettier reports style issues in several files — also pre-existing.
 - The `onlyBuiltDependencies` list in `pnpm-workspace.yaml` already covers common native deps (`@swc/core`, `esbuild`, `msw`, `unrs-resolver`). `core-js` build script is intentionally ignored.
+- `AI_INTEGRATIONS_OPENAI_BASE_URL` must be the API endpoint (e.g. `https://api.openai.com/v1`), **not** the web dashboard URL (`https://platform.openai.com/...`). The server will start either way but API calls will fail with Cloudflare challenge pages if the wrong URL is used.
+- The chat endpoint uses model `gpt-5.2` hardcoded in `artifacts/api-server/src/routes/openai/conversations.ts`. If the OpenAI account doesn't have access to this model, chat will fail.
