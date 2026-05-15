@@ -4,18 +4,36 @@ This package is built for MilesWeb/cPanel Node.js with the existing CommonJS sta
 
 ## MilesWeb Node.js Settings
 
-- Application root: `public_html/sansa-ai-backend`
-- Application URL: `api.sansaai.in`
+- Application URL: `api.sansaai.in` (or your API host)
 - Startup file: `index.cjs`
 - Node.js version: 20.x
 - Application mode: `Production`
+- Application root: point at **this folder** (`artifacts/sansa-backend` inside your clone), for example:
+  - `~/repos/santhosh-sansa/artifacts/sansa-backend`
 
-## Upload
+## Deploy from GitHub (recommended)
 
-1. Extract `Frontend_SANSA_ADOBE_FULL_PLATFORM_2026.zip` into `public_html`.
-2. Extract `Backend_SANSA_ADOBE_FULL_PLATFORM_2026_CPANEL_SAFE.zip` into `public_html/sansa-ai-backend`.
-3. In MilesWeb Node.js panel, run `Run NPM Install`.
-4. Restart the Node.js app.
+1. In cPanel **Terminal / SSH**: `git clone https://github.com/santhosh-sansa/santhosh-sansa.git` (or use your existing repo path).
+2. `cd santhosh-sansa && git checkout main && git pull origin main`
+3. In **Setup Node.js App**, set **Application root** to `.../artifacts/sansa-backend` (absolute path on the server).
+4. Use **Run NPM Install** in the panel (CloudLinux expects `node_modules` as a symlink; do not keep a real `node_modules` folder you created manually in that root).
+5. Copy `.env.example` to `.env` (or set variables in the Node.js app UI) and fill production values below.
+6. **Restart** the application.
+
+Local check before you push or after `git pull`:
+
+```bash
+cd artifacts/sansa-backend
+npm run verify
+```
+
+## Upload (zip bundle, optional)
+
+If you use the older zip bundles instead of Git:
+
+1. Extract the frontend zip into `public_html` (if you still split static hosting that way).
+2. Extract the backend zip into your Node application root (same layout as this repo’s `artifacts/sansa-backend`).
+3. In the Node.js panel, run **Run NPM Install** and restart.
 
 ## Required Environment Variables
 
@@ -49,7 +67,8 @@ If `DATABASE_URL` is empty, SANSA uses JSON files in `data/` for users, settings
 Open:
 
 ```text
-https://sansaai.in/?v=sansa-adobe-full-platform-2026-v1
+https://sansaai.in/
+https://api.sansaai.in/health
 https://api.sansaai.in/api/health
 https://api.sansaai.in/api/apps
 https://api.sansaai.in/api/plans
