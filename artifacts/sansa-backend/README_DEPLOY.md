@@ -20,12 +20,30 @@ This package is built for MilesWeb/cPanel Node.js with the existing CommonJS sta
 5. Copy `.env.example` to `.env` (or set variables in the Node.js app UI) and fill production values below.
 6. **Restart** the application.
 
-Local check before you push or after `git pull`:
+Local check after `git pull` (from your laptop, if `node` is on your PATH):
 
 ```bash
 cd artifacts/sansa-backend
 npm run verify
 ```
+
+**cPanel SSH:** `npm` is often missing from the default shell `PATH`. Use either:
+
+```bash
+cd ~/repos/santhosh-sansa/artifacts/sansa-backend
+sh scripts/verify-from-ssh.sh
+```
+
+Or call Node directly (MilesWeb / CloudLinux alt-nodejs example):
+
+```bash
+cd ~/repos/santhosh-sansa/artifacts/sansa-backend
+/opt/alt/alt-nodejs20/root/usr/bin/node scripts/verify-sansa.cjs
+```
+
+If your host uses a different Node build, list candidates with  
+`ls /opt/alt/alt-nodejs*/root/usr/bin/node 2>/dev/null` and set  
+`export SANSA_NODE=/full/path/to/node` before `sh scripts/verify-from-ssh.sh`.
 
 ## Upload (zip bundle, optional)
 
