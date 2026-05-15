@@ -8,11 +8,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=sansa-workspace-apps-2026-v3">
+  <link rel="stylesheet" href="styles.css?v=sansa-login-tools-flow-2026-v2">
 </head>
 <body>
-  <!-- To show Sign in / Register again on sansaai.in: <script>window.__SANSA_HIDE_ACCOUNT_UI__=false</script> before sansa-config.js -->
-  <div id="browseOnlyNotice" class="browse-only-notice hidden" role="status" aria-live="polite"></div>
   <div class="promo-bar" id="promoBar">
     <strong>Launch offer:</strong> Start SANSA Creative Cloud-style workspace with free AI credits.
     <button class="promo-button" data-open-auth="register">Start free</button>
@@ -87,160 +85,6 @@
       </div>
       <div class="pricing-tabs" id="pricingTabs"></div>
       <div class="pricing-grid" id="pricingGrid"></div>
-    </section>
-
-    <section class="pdf-studio-section hidden" id="pdfStudioView" aria-label="SANSA PDF Studio">
-      <div class="pdf-studio-header">
-        <button type="button" class="ghost-button" data-route="apps">← All apps</button>
-        <div>
-          <p class="eyebrow">SANSA PDF Studio</p>
-          <h2>Upload → extract → summarise or ask → download</h2>
-          <p class="muted">MVP: text-based PDFs work best. Scanned PDFs need OCR in a later release.</p>
-        </div>
-      </div>
-      <div id="pdfStudioMessage" class="message hidden" role="status"></div>
-      <div class="pdf-studio-grid">
-        <div class="pdf-studio-card">
-          <h3>1. Upload PDF</h3>
-          <label class="file-drop"><input type="file" id="pdfStudioFile" accept="application/pdf,.pdf"> Choose file</label>
-          <button type="button" class="primary-button" id="pdfStudioExtractBtn">Extract text</button>
-          <p id="pdfStudioFileMeta" class="pdf-studio-meta"></p>
-        </div>
-        <div class="pdf-studio-card pdf-studio-span-2">
-          <h3>2. Extracted text</h3>
-          <textarea id="pdfStudioRawPreview" readonly rows="10" placeholder="Extracted text appears here (preview up to ~5000 characters)."></textarea>
-        </div>
-        <div class="pdf-studio-card">
-          <h3>3. Summarise</h3>
-          <p class="muted">On-device style extractive summary (no paid API required).</p>
-          <button type="button" class="primary-button" id="pdfStudioSummarizeBtn">Generate summary</button>
-        </div>
-        <div class="pdf-studio-card pdf-studio-span-2">
-          <h3>Summary</h3>
-          <textarea id="pdfStudioSummaryOut" readonly rows="8" placeholder="Summary appears here."></textarea>
-        </div>
-        <div class="pdf-studio-card pdf-studio-span-3">
-          <h3>4. Ask your PDF</h3>
-          <label>Question<input type="text" id="pdfStudioQuestion" placeholder="Example: What is the total amount due?" autocomplete="off"></label>
-          <button type="button" class="ghost-button" id="pdfStudioChatBtn">Get answer from text</button>
-          <textarea id="pdfStudioChatOut" readonly rows="6" placeholder="Answer from matching passages."></textarea>
-        </div>
-        <div class="pdf-studio-card pdf-studio-span-3">
-          <h3>5. Download</h3>
-          <div class="pdf-studio-actions">
-            <button type="button" class="outline-dark" id="pdfStudioDownloadTxt">Download summary (.txt)</button>
-            <button type="button" class="outline-dark" id="pdfStudioDownloadPdf">Download summary (.pdf)</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="pdf-studio-section business-os-section hidden" id="businessOsView" aria-label="SANSA Business OS">
-      <div class="pdf-studio-header">
-        <button type="button" class="ghost-button" data-route="apps">← All apps</button>
-        <div>
-          <p class="eyebrow">SANSA Business OS</p>
-          <h2>Business profile, GST invoice draft, ledger</h2>
-          <p class="muted">MVP: invoice preview and PDF use existing SANSA services. Save profile needs sign-in.</p>
-        </div>
-      </div>
-      <div id="businessOsMessage" class="message hidden" role="status"></div>
-      <div class="pdf-studio-grid">
-        <div class="pdf-studio-card pdf-studio-span-3">
-          <h3>Your business</h3>
-          <div class="bos-inline">
-            <label>Legal / trading name<input type="text" id="bosBusinessName" placeholder="SANSA Demo Traders" autocomplete="organization"></label>
-            <label>Contact<input type="text" id="bosContact" placeholder="Phone or email"></label>
-            <label>GSTIN<input type="text" id="bosGstin" placeholder="33AAAAA0000A1Z5" autocomplete="off"></label>
-            <label>UPI / payment note<input type="text" id="bosUpi" placeholder="merchant@upi"></label>
-          </div>
-          <label>Address<textarea id="bosAddress" rows="2" placeholder="Street, city, state"></textarea></label>
-          <label>Terms / notes<textarea id="bosTerms" rows="2" placeholder="Payment due in 7 days"></textarea></label>
-          <div class="pdf-studio-actions">
-            <button type="button" class="primary-button" id="bosSaveProfileBtn">Save profile</button>
-            <span class="pdf-studio-meta" id="bosProfileHint"></span>
-          </div>
-        </div>
-        <div class="pdf-studio-card pdf-studio-span-2">
-          <h3>Invoice</h3>
-          <label>Template
-            <select id="bosTemplate">
-              <option value="gst-invoice">GST invoice</option>
-              <option value="simple-invoice">Simple invoice</option>
-              <option value="service-bill">Service bill</option>
-            </select>
-          </label>
-          <div class="bos-inline">
-            <label>Bill to (name)<input type="text" id="bosCustomerName" placeholder="Customer name"></label>
-            <label>Customer GSTIN<input type="text" id="bosCustomerGstin" placeholder="Optional"></label>
-            <label>Customer contact<input type="text" id="bosCustomerContact" placeholder="Phone / email"></label>
-          </div>
-          <div class="bos-inline">
-            <label>Invoice #<input type="text" id="bosInvoiceNo" placeholder="Auto if empty"></label>
-            <label>Date<input type="date" id="bosInvoiceDate"></label>
-            <label>Due<input type="date" id="bosDueDate"></label>
-            <label>Supply
-              <select id="bosSplitMode">
-                <option value="intra">Intra-state (CGST+SGST)</option>
-                <option value="inter">Inter-state (IGST)</option>
-              </select>
-            </label>
-          </div>
-          <table class="bos-items" aria-label="Line items">
-            <thead><tr><th>Item</th><th>Qty</th><th>Rate</th><th>GST %</th><th>HSN</th></tr></thead>
-            <tbody>
-              <tr>
-                <td><input type="text" id="bosItem1Name" placeholder="Service or product"></td>
-                <td><input type="number" id="bosItem1Qty" min="0" step="0.01" value="1"></td>
-                <td><input type="number" id="bosItem1Rate" min="0" step="0.01" value="10000"></td>
-                <td><input type="number" id="bosItem1Tax" min="0" step="0.01" value="18"></td>
-                <td><input type="text" id="bosItem1Hsn" placeholder="9983"></td>
-              </tr>
-              <tr>
-                <td><input type="text" id="bosItem2Name" placeholder="Optional second line"></td>
-                <td><input type="number" id="bosItem2Qty" min="0" step="0.01" value="0"></td>
-                <td><input type="number" id="bosItem2Rate" min="0" step="0.01" value="0"></td>
-                <td><input type="number" id="bosItem2Tax" min="0" step="0.01" value="18"></td>
-                <td><input type="text" id="bosItem2Hsn" placeholder=""></td>
-              </tr>
-            </tbody>
-          </table>
-          <div class="bos-inline">
-            <label>Discount (Rs)<input type="number" id="bosDiscount" min="0" step="0.01" value="0"></label>
-            <label>Already paid (Rs)<input type="number" id="bosPaidAmount" min="0" step="0.01" value="0"></label>
-            <label>Status
-              <select id="bosPayStatus">
-                <option value="pending">Pending</option>
-                <option value="partial">Partial</option>
-                <option value="paid">Paid</option>
-              </select>
-            </label>
-          </div>
-          <div class="pdf-studio-actions">
-            <button type="button" class="primary-button" id="bosPreviewBtn">Preview draft</button>
-            <button type="button" class="outline-dark" id="bosPdfBtn">Download invoice PDF</button>
-          </div>
-          <p class="pdf-studio-meta" id="bosUpiOut"></p>
-        </div>
-        <div class="pdf-studio-card pdf-studio-span-3">
-          <h3>Invoice draft preview</h3>
-          <textarea id="bosPreviewOut" readonly rows="12" placeholder="Click “Preview draft”."></textarea>
-        </div>
-        <div class="pdf-studio-card">
-          <h3>GST quick estimate</h3>
-          <label>Taxable sales (Rs)<input type="number" id="bosGstSales" min="0" step="0.01" value="100000"></label>
-          <label>GST rate %<input type="number" id="bosGstRate" min="0" step="0.01" value="18"></label>
-          <label>Input tax credit (Rs)<input type="number" id="bosGstItc" min="0" step="0.01" value="5000"></label>
-          <button type="button" class="ghost-button" id="bosGstCalcBtn">Calculate</button>
-          <pre id="bosGstOut" class="bos-pre"></pre>
-        </div>
-        <div class="pdf-studio-card pdf-studio-span-2">
-          <h3>Payment ledger</h3>
-          <p class="muted">Recent payment links and marks for this browser session (guest or signed-in).</p>
-          <button type="button" class="ghost-button" id="bosRefreshLedgerBtn">Refresh</button>
-          <div id="bosLedgerOut" class="bos-ledger"></div>
-        </div>
-      </div>
     </section>
 
     <section class="workspace hidden" id="dashboardView">
@@ -351,8 +195,6 @@
     </div>
     <div class="footer-links">
       <a href="#apps">All apps</a>
-      <a href="#pdf-studio">PDF Studio</a>
-      <a href="#business-os">Business OS</a>
       <a href="#pricing">Plans</a>
       <a href="#support">Support</a>
       <a href="#privacy">Privacy</a>
@@ -360,6 +202,6 @@
   </footer>
 
   <script src="sansa-config.js"></script>
-  <script src="app.js?v=sansa-workspace-apps-2026-v3"></script>
+  <script src="app.js?v=sansa-login-tools-flow-2026-v2"></script>
 </body>
 </html>
