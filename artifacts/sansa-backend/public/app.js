@@ -12,17 +12,6 @@
     currentPlanTab: 'individuals',
   };
 
-  const pdfStudio = {
-    text: '',
-    fileName: '',
-    summary: '',
-    chatReply: '',
-  };
-
-  const businessOs = {
-    lastInvoicePayload: null,
-  };
-
   const categoryLabels = {
     all: 'All apps',
     beta: 'Beta',
@@ -218,41 +207,21 @@
     window.setTimeout(() => el.classList.add('hidden'), 4200);
   }
 
-  function showBrowseOnlyNotice(message, ms = 8000) {
-    const n = $('#browseOnlyNotice');
-    if (!n) return;
-    n.textContent = message;
-    n.classList.remove('hidden');
-    window.clearTimeout(window.__sansaBrowseNoticeTimer);
-    window.__sansaBrowseNoticeTimer = window.setTimeout(() => n.classList.add('hidden'), ms);
-  }
-
   async function init() {
     bindEvents();
     await Promise.allSettled([loadMe(), loadAdmin(), loadPlatform(), loadApps(), loadPlans()]);
     renderAll();
-    document.body.classList.toggle('sansa-hide-public-auth', Boolean(config.hideAccountUi));
     routeFromHash();
   }
 
   async function loadMe() {
-    try {
-      const data = await request('/api/auth/me');
-      state.user = data.user || null;
-    } catch (error) {
-      state.user = null;
-      console.warn('SANSA /api/auth/me failed:', error.message);
-    }
+    const data = await request('/api/auth/me');
+    state.user = data.user || null;
   }
 
   async function loadAdmin() {
-    try {
-      const data = await request('/api/admin/me');
-      state.admin = data.admin || null;
-    } catch (error) {
-      state.admin = null;
-      console.warn('SANSA /api/admin/me failed:', error.message);
-    }
+    const data = await request('/api/admin/me');
+    state.admin = data.admin || null;
   }
 
   async function loadPlatform() {
@@ -294,25 +263,21 @@
     const settings = state.settings || {};
     const promo = settings.promo || {};
     const hero = settings.hero || {};
-    $('#promoBar').innerHTML = `<strong>${h(promo.label || 'Launch offer:')}</strong> ${h(promo.text || 'Start SANSA Creative Cloud-style workspace with free AI credits.')}${
-      config.hideAccountUi
-        ? ''
-        : ` <button type="button" class="promo-button" data-open-auth="register">${h(promo.cta || 'Start free')}</button>`
-    }`;
+    $('#promoBar').innerHTML = `<strong>${h(promo.label || 'Launch offer:')}</strong> ${h(promo.text || 'Start SANSA Creative Cloud-style workspace with free AI credits.')} <button class="promo-button" data-open-auth="register">${h(promo.cta || 'Start free')}</button>`;
     $('#heroTitle').textContent = hero.title || 'Create something new with SANSA AI.';
     $('#heroSubtitle').textContent = hero.subtitle || 'Design visuals, edit PDFs, automate HR, manage payments and run AI workflows in one SANSA workspace.';
   }
 
   function renderStoryCards() {
     const stories = [
-      ['yellow', 'Save on SANSA Creative Pro', 'Get image, PDF, video, HRMS and business tools with one account.', 'apps'],
-      ['dark', 'Get it done with PDF Studio', 'Upload, extract text, summarise and download in one workflow.', 'pdf-studio'],
-      ['blue', 'New AI models ready', 'Connect provider keys later and keep fallback tools available now.', 'apps'],
+      ['yellow', 'Save on SANSA Creative Pro', 'Get image, PDF, video, HRMS and business tools with one account.'],
+      ['dark', 'Get it done with PDF Studio', 'Edit, sign, compress, merge and chat with documents in one workflow.'],
+      ['blue', 'New AI models ready', 'Connect provider keys later and keep fallback tools available now.'],
     ];
-    $('#storyGrid').innerHTML = stories.map(([tone, title, body, route]) => `
+    $('#storyGrid').innerHTML = stories.map(([tone, title, body]) => `
       <article class="story-card ${tone}">
         <div><h3>${h(title)}</h3><p>${h(body)}</p></div>
-        <button class="${tone === 'yellow' ? 'outline-dark' : 'outline-light'}" data-route="${h(route)}">${tone === 'dark' ? 'Open PDF Studio' : 'Explore'}</button>
+        <button class="${tone === 'yellow' ? 'outline-dark' : 'outline-light'}" data-route="apps">Explore</button>
       </article>
     `).join('');
   }
@@ -504,7 +469,7 @@
 
   function renderAuthState() {
     const user = state.user;
-    $('#signinButton').classList.toggle('hidden', Boolean(user) || Boolean(config.hideAccountUi));
+    $('#signinButton').classList.toggle('hidden', Boolean(user));
     $('#profileButton').classList.toggle('hidden', !user);
     if (user) {
       const label = String(user.name || user.fullName || user.email || 'SA').trim();
@@ -553,12 +518,6 @@
   }
 
   function openAuth(tab = 'login') {
-    if (config.hideAccountUi) {
-      showBrowseOnlyNotice(
-        'Sign-in and new accounts are turned off on this marketing site. Use PDF Studio or Business OS from All apps without logging in.',
-      );
-      return;
-    }
     $('#authModal').classList.remove('hidden');
     switchAuthTab(tab);
     $('#loginEmail')?.focus();
@@ -606,12 +565,9 @@
     $('#storyGrid').classList.toggle('hidden', view !== 'home');
     $('#appsView').classList.toggle('hidden', view !== 'home' && view !== 'apps');
     $('#pricingView').classList.toggle('hidden', view !== 'pricing');
-    $('#pdfStudioView').classList.toggle('hidden', view !== 'pdf-studio');
-    $('#businessOsView').classList.toggle('hidden', view !== 'business-os');
     $('#dashboardView').classList.toggle('hidden', !isDashboard);
     window.location.hash = view === 'home' ? '#home' : `#${view}`;
     closePopups();
-    if (view === 'business-os') window.queueMicrotask(() => refreshBusinessOsView());
   }
 
   function openDashboardTool(appId) {
@@ -626,381 +582,9 @@
   }
 
   function routeFromHash() {
-    const raw = (window.location.hash.replace('#', '') || 'home').trim();
-    const view = raw === 'pdf-studio' ? 'pdf-studio' : raw === 'business-os' ? 'business-os' : raw;
-    if (view === 'pricing' || view === 'apps' || view === 'dashboard' || view === 'pdf-studio' || view === 'business-os') showView(view);
+    const view = window.location.hash.replace('#', '') || 'home';
+    if (view === 'pricing' || view === 'apps' || view === 'dashboard') showView(view);
     else showView('home');
-  }
-
-  function pdfStudioShow(msg, type = 'error') {
-    showMessage('#pdfStudioMessage', msg, type);
-  }
-
-  async function handlePdfStudioExtract() {
-    const input = $('#pdfStudioFile');
-    const file = input?.files?.[0];
-    if (!file) {
-      pdfStudioShow('Choose a PDF file first.', 'error');
-      return;
-    }
-    const button = $('#pdfStudioExtractBtn');
-    const prev = button.textContent;
-    button.textContent = 'Extracting...';
-    button.disabled = true;
-    try {
-      const fd = new FormData();
-      fd.append('pdf', file);
-      const res = await fetch(apiUrl('/api/tools/pdf-to-text'), { method: 'POST', body: fd, credentials: 'include' });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || data.ok === false) throw new Error(data.error || data.message || 'Extract failed.');
-      if (!data.text) throw new Error(data.error || 'No text extracted.');
-      pdfStudio.text = data.text;
-      pdfStudio.fileName = data.file || file.name;
-      pdfStudio.summary = '';
-      pdfStudio.chatReply = '';
-      $('#pdfStudioFileMeta').textContent = `${pdfStudio.fileName} · ${data.chars || data.text.length} characters`;
-      const preview = data.text.length > 5000 ? `${data.text.slice(0, 5000)}\n\n… (${data.text.length} characters total)` : data.text;
-      $('#pdfStudioRawPreview').value = preview;
-      $('#pdfStudioSummaryOut').value = '';
-      $('#pdfStudioChatOut').value = '';
-      $('#pdfStudioQuestion').value = '';
-      pdfStudioShow('Text extracted. You can summarise or ask a question.', 'success');
-    } catch (e) {
-      pdfStudioShow(e.message || 'Extract failed.', 'error');
-    } finally {
-      button.textContent = prev;
-      button.disabled = false;
-    }
-  }
-
-  async function handlePdfStudioSummarize() {
-    if (!pdfStudio.text) {
-      pdfStudioShow('Extract a PDF first.', 'error');
-      return;
-    }
-    const button = $('#pdfStudioSummarizeBtn');
-    const prev = button.textContent;
-    button.textContent = 'Working...';
-    button.disabled = true;
-    try {
-      const res = await fetch(apiUrl('/api/tools/pdf-studio/summarize'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ text: pdfStudio.text }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || data.ok === false) throw new Error(data.error || 'Summary failed.');
-      pdfStudio.summary = data.summary || '';
-      $('#pdfStudioSummaryOut').value = pdfStudio.summary;
-      pdfStudioShow('Summary ready.', 'success');
-    } catch (e) {
-      pdfStudioShow(e.message || 'Summary failed.', 'error');
-    } finally {
-      button.textContent = prev;
-      button.disabled = false;
-    }
-  }
-
-  async function handlePdfStudioChat() {
-    if (!pdfStudio.text) {
-      pdfStudioShow('Extract a PDF first.', 'error');
-      return;
-    }
-    const message = $('#pdfStudioQuestion').value.trim();
-    const button = $('#pdfStudioChatBtn');
-    const prev = button.textContent;
-    button.textContent = 'Searching...';
-    button.disabled = true;
-    try {
-      const res = await fetch(apiUrl('/api/tools/pdf-studio/chat'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ text: pdfStudio.text, message }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || data.ok === false) throw new Error(data.error || 'Chat failed.');
-      pdfStudio.chatReply = data.reply || '';
-      $('#pdfStudioChatOut').value = pdfStudio.chatReply;
-      pdfStudioShow(message ? 'Answer updated.' : 'Overview generated.', 'success');
-    } catch (e) {
-      pdfStudioShow(e.message || 'Chat failed.', 'error');
-    } finally {
-      button.textContent = prev;
-      button.disabled = false;
-    }
-  }
-
-  function downloadBlob(blob, filename) {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.rel = 'noopener';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  }
-
-  function handlePdfStudioDownloadTxt() {
-    const text = pdfStudio.summary || $('#pdfStudioSummaryOut').value.trim();
-    if (!text) {
-      pdfStudioShow('Generate a summary first.', 'error');
-      return;
-    }
-    const base = (pdfStudio.fileName || 'sansa-document').replace(/\.pdf$/i, '');
-    downloadBlob(new Blob([text], { type: 'text/plain;charset=utf-8' }), `${base}-summary.txt`);
-    pdfStudioShow('Download started.', 'success');
-  }
-
-  async function handlePdfStudioDownloadPdf() {
-    const text = pdfStudio.summary || $('#pdfStudioSummaryOut').value.trim();
-    if (!text) {
-      pdfStudioShow('Generate a summary first.', 'error');
-      return;
-    }
-    const title = `${(pdfStudio.fileName || 'SANSA').replace(/\.pdf$/i, '')} — summary`.slice(0, 110);
-    try {
-      const res = await fetch(apiUrl('/api/tools/text-to-pdf'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ title, text }),
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || 'PDF export failed.');
-      }
-      const blob = await res.blob();
-      const base = (pdfStudio.fileName || 'sansa-document').replace(/\.pdf$/i, '');
-      downloadBlob(blob, `${base}-summary.pdf`);
-      pdfStudioShow('PDF download started.', 'success');
-    } catch (e) {
-      pdfStudioShow(e.message || 'PDF export failed.', 'error');
-    }
-  }
-
-  function businessOsShow(msg, type = 'error') {
-    showMessage('#businessOsMessage', msg, type);
-  }
-
-  function bosToday() {
-    return new Date().toISOString().slice(0, 10);
-  }
-
-  function collectBusinessInvoicePayload() {
-    const invoiceItems = [
-      {
-        name: $('#bosItem1Name').value.trim(),
-        qty: $('#bosItem1Qty').value,
-        rate: $('#bosItem1Rate').value,
-        tax: $('#bosItem1Tax').value,
-        hsn: $('#bosItem1Hsn').value.trim(),
-      },
-      {
-        name: $('#bosItem2Name').value.trim(),
-        qty: $('#bosItem2Qty').value,
-        rate: $('#bosItem2Rate').value,
-        tax: $('#bosItem2Tax').value,
-        hsn: $('#bosItem2Hsn').value.trim(),
-      },
-    ].filter((row) => row.name);
-    return {
-      service: 'invoice',
-      templateType: $('#bosTemplate').value || 'gst-invoice',
-      designTemplate: 'modern',
-      personName: $('#bosCustomerName').value.trim(),
-      contact: $('#bosCustomerContact').value.trim(),
-      details: '',
-      extraDetails: $('#bosTerms').value.trim(),
-      businessProfile: {
-        name: $('#bosBusinessName').value.trim(),
-        contact: $('#bosContact').value.trim(),
-        taxId: $('#bosGstin').value.trim(),
-        payment: $('#bosUpi').value.trim(),
-        address: $('#bosAddress').value.trim(),
-        terms: $('#bosTerms').value.trim(),
-      },
-      customerDetails: {
-        name: $('#bosCustomerName').value.trim(),
-        contact: $('#bosCustomerContact').value.trim(),
-        taxId: $('#bosCustomerGstin').value.trim(),
-        address: '',
-      },
-      invoiceItems,
-      invoiceTotals: {
-        discount: Number($('#bosDiscount').value || 0),
-        splitMode: $('#bosSplitMode').value,
-      },
-      invoiceMeta: {
-        invoiceNumber: $('#bosInvoiceNo').value.trim(),
-        invoiceDate: $('#bosInvoiceDate').value.trim(),
-        dueDate: $('#bosDueDate').value.trim(),
-        status: $('#bosPayStatus').value,
-        paidAmount: Number($('#bosPaidAmount').value || 0),
-      },
-    };
-  }
-
-  async function refreshBusinessLedger() {
-    const target = $('#bosLedgerOut');
-    if (!target) return;
-    try {
-      const data = await request('/api/payments/ledger');
-      const rows = data.ledger || [];
-      if (!rows.length) {
-        target.innerHTML = '<p class="muted">No payment rows yet.</p>';
-        return;
-      }
-      target.innerHTML = rows.slice(0, 12).map((row) => `
-        <div class="bos-ledger-row">
-          <span>${h(row.invoiceNumber || row.customerName || 'Payment')}</span>
-          <span>${h(String(row.amount ?? ''))}</span>
-          <span>${h(row.status || '')}</span>
-        </div>
-      `).join('');
-    } catch (e) {
-      target.innerHTML = `<p class="muted">${h(e.message)}</p>`;
-    }
-  }
-
-  async function refreshBusinessOsView() {
-    const dateInput = $('#bosInvoiceDate');
-    if (dateInput && !dateInput.value) dateInput.value = bosToday();
-
-    const hint = $('#bosProfileHint');
-    if (hint) {
-      hint.textContent = state.user
-        ? 'Profile saves to your SANSA account when you click Save.'
-        : 'Sign in to save your business profile.';
-    }
-
-    if (state.user) {
-      try {
-        const data = await request('/api/business/setup');
-        const s = data.setup || {};
-        $('#bosBusinessName').value = s.businessName || '';
-        $('#bosContact').value = s.contact || '';
-        $('#bosGstin').value = s.gstin || '';
-        $('#bosUpi').value = s.upi || '';
-      } catch (e) {
-        /* ignore */
-      }
-    }
-
-    await refreshBusinessLedger();
-  }
-
-  async function handleBosPreview() {
-    const button = $('#bosPreviewBtn');
-    const prev = button.textContent;
-    button.textContent = '…';
-    button.disabled = true;
-    try {
-      const payload = collectBusinessInvoicePayload();
-      if (!payload.invoiceItems.length) {
-        businessOsShow('Add at least one line item with a name.', 'error');
-        return;
-      }
-      const res = await fetch(apiUrl('/api/tools/business-os/invoice-preview'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || data.ok === false) throw new Error(data.error || 'Preview failed.');
-      businessOs.lastInvoicePayload = payload;
-      $('#bosPreviewOut').value = data.draft || '';
-      $('#bosUpiOut').textContent = data.paymentUrl
-        ? `UPI deep link: ${data.paymentUrl}`
-        : 'Add a UPI id (e.g. shop@paytm) in the payment field to generate a pay link.';
-      businessOsShow('Draft ready.', 'success');
-    } catch (e) {
-      businessOsShow(e.message || 'Preview failed.', 'error');
-    } finally {
-      button.textContent = prev;
-      button.disabled = false;
-    }
-  }
-
-  async function handleBosPdf() {
-    const payload = businessOs.lastInvoicePayload || collectBusinessInvoicePayload();
-    if (!payload.invoiceItems.length) {
-      businessOsShow('Add line items, then Preview or download.', 'error');
-      return;
-    }
-    try {
-      const res = await fetch(apiUrl('/api/services/pdf'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || 'PDF failed.');
-      }
-      const blob = await res.blob();
-      const inv = payload.invoiceMeta?.invoiceNumber || `sansa-${Date.now()}`;
-      const name = String(inv).replace(/[^\w.-]+/g, '-');
-      downloadBlob(blob, `${name}.pdf`);
-      businessOsShow('Invoice PDF downloaded.', 'success');
-    } catch (e) {
-      businessOsShow(e.message || 'PDF failed.', 'error');
-    }
-  }
-
-  async function handleBosSaveProfile() {
-    if (!state.user) {
-      openAuth('login');
-      businessOsShow('Please sign in to save your profile.', 'error');
-      return;
-    }
-    try {
-      await request('/api/business/setup', {
-        method: 'POST',
-        body: JSON.stringify({
-          businessName: $('#bosBusinessName').value.trim(),
-          contact: $('#bosContact').value.trim(),
-          gstin: $('#bosGstin').value.trim(),
-          upi: $('#bosUpi').value.trim(),
-        }),
-      });
-      businessOsShow('Business profile saved.', 'success');
-    } catch (e) {
-      businessOsShow(e.message || 'Save failed.', 'error');
-    }
-  }
-
-  async function handleBosGst() {
-    try {
-      const res = await fetch(apiUrl('/api/tools/business-os/gst-estimate'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          taxableSales: Number($('#bosGstSales').value || 0),
-          gstRate: Number($('#bosGstRate').value || 18),
-          inputTaxCredit: Number($('#bosGstItc').value || 0),
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || data.ok === false) throw new Error(data.error || 'GST estimate failed.');
-      $('#bosGstOut').textContent = [
-        `Taxable sales: Rs.${Number(data.taxableSales).toFixed(2)}`,
-        `GST @ ${data.gstRate}%: Rs.${Number(data.outputTax).toFixed(2)}`,
-        `Input tax credit: Rs.${Number(data.inputTaxCredit).toFixed(2)}`,
-        `Net payable (output − ITC): Rs.${Number(data.netPayable).toFixed(2)}`,
-        '',
-        'Note: illustrative only; consult your CA for filing.',
-      ].join('\n');
-      businessOsShow('GST estimate updated.', 'success');
-    } catch (e) {
-      businessOsShow(e.message || 'GST estimate failed.', 'error');
-    }
   }
 
   async function handleLogin(event) {
@@ -1094,12 +678,8 @@
       if (url) window.open(url, '_blank', 'noopener');
       else showMessage('#authMessage', 'Free plan activated.', 'success');
     } catch (error) {
-      if (config.hideAccountUi) {
-        showBrowseOnlyNotice(error.message || 'Checkout needs the full workspace with accounts enabled.', 9000);
-      } else {
-        showMessage('#authMessage', error.message, 'error');
-        openAuth(state.user ? 'login' : 'register');
-      }
+      showMessage('#authMessage', error.message, 'error');
+      openAuth(state.user ? 'login' : 'register');
     }
   }
 
@@ -1141,17 +721,8 @@
 
       const openApp = event.target.closest('[data-open-app]');
       if (openApp) {
-        const appId = openApp.dataset.openApp;
-        if (appId === 'pdf-studio') {
-          showView('pdf-studio');
-          return;
-        }
-        if (appId === 'business-os') {
-          showView('business-os');
-          return;
-        }
         if (!state.user) openAuth('login');
-        else openDashboardTool(appId);
+        else openDashboardTool(openApp.dataset.openApp);
       }
 
       const social = event.target.closest('[data-social]');
@@ -1227,16 +798,6 @@
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') closePopups();
     });
-    $('#pdfStudioExtractBtn')?.addEventListener('click', handlePdfStudioExtract);
-    $('#pdfStudioSummarizeBtn')?.addEventListener('click', handlePdfStudioSummarize);
-    $('#pdfStudioChatBtn')?.addEventListener('click', handlePdfStudioChat);
-    $('#pdfStudioDownloadTxt')?.addEventListener('click', handlePdfStudioDownloadTxt);
-    $('#pdfStudioDownloadPdf')?.addEventListener('click', handlePdfStudioDownloadPdf);
-    $('#bosPreviewBtn')?.addEventListener('click', handleBosPreview);
-    $('#bosPdfBtn')?.addEventListener('click', handleBosPdf);
-    $('#bosSaveProfileBtn')?.addEventListener('click', handleBosSaveProfile);
-    $('#bosRefreshLedgerBtn')?.addEventListener('click', refreshBusinessLedger);
-    $('#bosGstCalcBtn')?.addEventListener('click', handleBosGst);
     document.addEventListener('click', (event) => {
       if (!event.target.closest('.site-header, .mega-menu, .app-switcher, .profile-menu')) closePopups();
       if (event.target.closest('#logoutBtn')) logout();
