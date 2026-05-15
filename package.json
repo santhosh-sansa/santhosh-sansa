@@ -5,6 +5,7 @@
   "scripts": {
     "preinstall": "sh -c 'rm -f package-lock.json yarn.lock; case \"$npm_config_user_agent\" in pnpm/*) ;; *) echo \"Use pnpm instead\" >&2; exit 1 ;; esac'",
     "postinstall": "mkdir -p node_modules/.bin && ln -sf \"$(which pnpm)\" node_modules/.bin/rpm && ln -sf \"$(which pnpm)\" /usr/local/bin/rpm 2>/dev/null || true",
+    "sansa:backend": "pnpm --filter sansa-super-ai start",
     "build": "echo 'Root build complete — each artifact builds via artifact.toml'",
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"

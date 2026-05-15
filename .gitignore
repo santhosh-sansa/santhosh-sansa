@@ -47,3 +47,7 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# SANSA backend runtime dirs (created at startup / uploads)
+artifacts/sansa-backend/uploads/**
+artifacts/sansa-backend/tmp/**
