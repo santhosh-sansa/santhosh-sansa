@@ -218,21 +218,41 @@
     window.setTimeout(() => el.classList.add('hidden'), 4200);
   }
 
+  function showBrowseOnlyNotice(message, ms = 8000) {
+    const n = $('#browseOnlyNotice');
+    if (!n) return;
+    n.textContent = message;
+    n.classList.remove('hidden');
+    window.clearTimeout(window.__sansaBrowseNoticeTimer);
+    window.__sansaBrowseNoticeTimer = window.setTimeout(() => n.classList.add('hidden'), ms);
+  }
+
   async function init() {
     bindEvents();
     await Promise.allSettled([loadMe(), loadAdmin(), loadPlatform(), loadApps(), loadPlans()]);
     renderAll();
+    document.body.classList.toggle('sansa-hide-public-auth', Boolean(config.hideAccountUi));
     routeFromHash();
   }
 
   async function loadMe() {
-    const data = await request('/api/auth/me');
-    state.user = data.user || null;
+    try {
+      const data = await request('/api/auth/me');
+      state.user = data.user || null;
+    } catch (error) {
+      state.user = null;
+      console.warn('SANSA /api/auth/me failed:', error.message);
+    }
   }
 
   async function loadAdmin() {
-    const data = await request('/api/admin/me');
-    state.admin = data.admin || null;
+    try {
+      const data = await request('/api/admin/me');
+      state.admin = data.admin || null;
+    } catch (error) {
+      state.admin = null;
+      console.warn('SANSA /api/admin/me failed:', error.message);
+    }
   }
 
   async function loadPlatform() {
@@ -274,7 +294,11 @@
     const settings = state.settings || {};
     const promo = settings.promo || {};
     const hero = settings.hero || {};
-    $('#promoBar').innerHTML = `<strong>${h(promo.label || 'Launch offer:')}</strong> ${h(promo.text || 'Start SANSA Creative Cloud-style workspace with free AI credits.')} <button class="promo-button" data-open-auth="register">${h(promo.cta || 'Start free')}</button>`;
+    $('#promoBar').innerHTML = `<strong>${h(promo.label || 'Launch offer:')}</strong> ${h(promo.text || 'Start SANSA Creative Cloud-style workspace with free AI credits.')}${
+      config.hideAccountUi
+        ? ''
+        : ` <button type="button" class="promo-button" data-open-auth="register">${h(promo.cta || 'Start free')}</button>`
+    }`;
     $('#heroTitle').textContent = hero.title || 'Create something new with SANSA AI.';
     $('#heroSubtitle').textContent = hero.subtitle || 'Design visuals, edit PDFs, automate HR, manage payments and run AI workflows in one SANSA workspace.';
   }
@@ -480,7 +504,7 @@
 
   function renderAuthState() {
     const user = state.user;
-    $('#signinButton').classList.toggle('hidden', Boolean(user));
+    $('#signinButton').classList.toggle('hidden', Boolean(user) || Boolean(config.hideAccountUi));
     $('#profileButton').classList.toggle('hidden', !user);
     if (user) {
       const label = String(user.name || user.fullName || user.email || 'SA').trim();
@@ -529,6 +553,12 @@
   }
 
   function openAuth(tab = 'login') {
+    if (config.hideAccountUi) {
+      showBrowseOnlyNotice(
+        'Sign-in and new accounts are turned off on this marketing site. Use PDF Studio or Business OS from All apps without logging in.',
+      );
+      return;
+    }
     $('#authModal').classList.remove('hidden');
     switchAuthTab(tab);
     $('#loginEmail')?.focus();
@@ -1064,8 +1094,12 @@
       if (url) window.open(url, '_blank', 'noopener');
       else showMessage('#authMessage', 'Free plan activated.', 'success');
     } catch (error) {
-      showMessage('#authMessage', error.message, 'error');
-      openAuth(state.user ? 'login' : 'register');
+      if (config.hideAccountUi) {
+        showBrowseOnlyNotice(error.message || 'Checkout needs the full workspace with accounts enabled.', 9000);
+      } else {
+        showMessage('#authMessage', error.message, 'error');
+        openAuth(state.user ? 'login' : 'register');
+      }
     }
   }
 
