@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=sansa-login-tools-flow-2026-v2">
+  <link rel="stylesheet" href="styles.css?v=sansa-pdf-studio-mvp-2026-v1">
 </head>
 <body>
   <div class="promo-bar" id="promoBar">
@@ -85,6 +85,52 @@
       </div>
       <div class="pricing-tabs" id="pricingTabs"></div>
       <div class="pricing-grid" id="pricingGrid"></div>
+    </section>
+
+    <section class="pdf-studio-section hidden" id="pdfStudioView" aria-label="SANSA PDF Studio">
+      <div class="pdf-studio-header">
+        <button type="button" class="ghost-button" data-route="apps">← All apps</button>
+        <div>
+          <p class="eyebrow">SANSA PDF Studio</p>
+          <h2>Upload → extract → summarise or ask → download</h2>
+          <p class="muted">MVP: text-based PDFs work best. Scanned PDFs need OCR in a later release.</p>
+        </div>
+      </div>
+      <div id="pdfStudioMessage" class="message hidden" role="status"></div>
+      <div class="pdf-studio-grid">
+        <div class="pdf-studio-card">
+          <h3>1. Upload PDF</h3>
+          <label class="file-drop"><input type="file" id="pdfStudioFile" accept="application/pdf,.pdf"> Choose file</label>
+          <button type="button" class="primary-button" id="pdfStudioExtractBtn">Extract text</button>
+          <p id="pdfStudioFileMeta" class="pdf-studio-meta"></p>
+        </div>
+        <div class="pdf-studio-card pdf-studio-span-2">
+          <h3>2. Extracted text</h3>
+          <textarea id="pdfStudioRawPreview" readonly rows="10" placeholder="Extracted text appears here (preview up to ~5000 characters)."></textarea>
+        </div>
+        <div class="pdf-studio-card">
+          <h3>3. Summarise</h3>
+          <p class="muted">On-device style extractive summary (no paid API required).</p>
+          <button type="button" class="primary-button" id="pdfStudioSummarizeBtn">Generate summary</button>
+        </div>
+        <div class="pdf-studio-card pdf-studio-span-2">
+          <h3>Summary</h3>
+          <textarea id="pdfStudioSummaryOut" readonly rows="8" placeholder="Summary appears here."></textarea>
+        </div>
+        <div class="pdf-studio-card pdf-studio-span-3">
+          <h3>4. Ask your PDF</h3>
+          <label>Question<input type="text" id="pdfStudioQuestion" placeholder="Example: What is the total amount due?" autocomplete="off"></label>
+          <button type="button" class="ghost-button" id="pdfStudioChatBtn">Get answer from text</button>
+          <textarea id="pdfStudioChatOut" readonly rows="6" placeholder="Answer from matching passages."></textarea>
+        </div>
+        <div class="pdf-studio-card pdf-studio-span-3">
+          <h3>5. Download</h3>
+          <div class="pdf-studio-actions">
+            <button type="button" class="outline-dark" id="pdfStudioDownloadTxt">Download summary (.txt)</button>
+            <button type="button" class="outline-dark" id="pdfStudioDownloadPdf">Download summary (.pdf)</button>
+          </div>
+        </div>
+      </div>
     </section>
 
     <section class="workspace hidden" id="dashboardView">
@@ -195,6 +241,7 @@
     </div>
     <div class="footer-links">
       <a href="#apps">All apps</a>
+      <a href="#pdf-studio">PDF Studio</a>
       <a href="#pricing">Plans</a>
       <a href="#support">Support</a>
       <a href="#privacy">Privacy</a>
@@ -202,6 +249,6 @@
   </footer>
 
   <script src="sansa-config.js"></script>
-  <script src="app.js?v=sansa-login-tools-flow-2026-v2"></script>
+  <script src="app.js?v=sansa-pdf-studio-mvp-2026-v1"></script>
 </body>
 </html>

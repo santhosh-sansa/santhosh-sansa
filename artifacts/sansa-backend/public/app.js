@@ -12,6 +12,13 @@
     currentPlanTab: 'individuals',
   };
 
+  const pdfStudio = {
+    text: '',
+    fileName: '',
+    summary: '',
+    chatReply: '',
+  };
+
   const categoryLabels = {
     all: 'All apps',
     beta: 'Beta',
@@ -270,14 +277,14 @@
 
   function renderStoryCards() {
     const stories = [
-      ['yellow', 'Save on SANSA Creative Pro', 'Get image, PDF, video, HRMS and business tools with one account.'],
-      ['dark', 'Get it done with PDF Studio', 'Edit, sign, compress, merge and chat with documents in one workflow.'],
-      ['blue', 'New AI models ready', 'Connect provider keys later and keep fallback tools available now.'],
+      ['yellow', 'Save on SANSA Creative Pro', 'Get image, PDF, video, HRMS and business tools with one account.', 'apps'],
+      ['dark', 'Get it done with PDF Studio', 'Upload, extract text, summarise and download in one workflow.', 'pdf-studio'],
+      ['blue', 'New AI models ready', 'Connect provider keys later and keep fallback tools available now.', 'apps'],
     ];
-    $('#storyGrid').innerHTML = stories.map(([tone, title, body]) => `
+    $('#storyGrid').innerHTML = stories.map(([tone, title, body, route]) => `
       <article class="story-card ${tone}">
         <div><h3>${h(title)}</h3><p>${h(body)}</p></div>
-        <button class="${tone === 'yellow' ? 'outline-dark' : 'outline-light'}" data-route="apps">Explore</button>
+        <button class="${tone === 'yellow' ? 'outline-dark' : 'outline-light'}" data-route="${h(route)}">${tone === 'dark' ? 'Open PDF Studio' : 'Explore'}</button>
       </article>
     `).join('');
   }
@@ -565,6 +572,7 @@
     $('#storyGrid').classList.toggle('hidden', view !== 'home');
     $('#appsView').classList.toggle('hidden', view !== 'home' && view !== 'apps');
     $('#pricingView').classList.toggle('hidden', view !== 'pricing');
+    $('#pdfStudioView').classList.toggle('hidden', view !== 'pdf-studio');
     $('#dashboardView').classList.toggle('hidden', !isDashboard);
     window.location.hash = view === 'home' ? '#home' : `#${view}`;
     closePopups();
@@ -582,9 +590,160 @@
   }
 
   function routeFromHash() {
-    const view = window.location.hash.replace('#', '') || 'home';
-    if (view === 'pricing' || view === 'apps' || view === 'dashboard') showView(view);
+    const raw = (window.location.hash.replace('#', '') || 'home').trim();
+    const view = raw === 'pdf-studio' ? 'pdf-studio' : raw;
+    if (view === 'pricing' || view === 'apps' || view === 'dashboard' || view === 'pdf-studio') showView(view);
     else showView('home');
+  }
+
+  function pdfStudioShow(msg, type = 'error') {
+    showMessage('#pdfStudioMessage', msg, type);
+  }
+
+  async function handlePdfStudioExtract() {
+    const input = $('#pdfStudioFile');
+    const file = input?.files?.[0];
+    if (!file) {
+      pdfStudioShow('Choose a PDF file first.', 'error');
+      return;
+    }
+    const button = $('#pdfStudioExtractBtn');
+    const prev = button.textContent;
+    button.textContent = 'Extracting...';
+    button.disabled = true;
+    try {
+      const fd = new FormData();
+      fd.append('pdf', file);
+      const res = await fetch(apiUrl('/api/tools/pdf-to-text'), { method: 'POST', body: fd, credentials: 'include' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.ok === false) throw new Error(data.error || data.message || 'Extract failed.');
+      if (!data.text) throw new Error(data.error || 'No text extracted.');
+      pdfStudio.text = data.text;
+      pdfStudio.fileName = data.file || file.name;
+      pdfStudio.summary = '';
+      pdfStudio.chatReply = '';
+      $('#pdfStudioFileMeta').textContent = `${pdfStudio.fileName} · ${data.chars || data.text.length} characters`;
+      const preview = data.text.length > 5000 ? `${data.text.slice(0, 5000)}\n\n… (${data.text.length} characters total)` : data.text;
+      $('#pdfStudioRawPreview').value = preview;
+      $('#pdfStudioSummaryOut').value = '';
+      $('#pdfStudioChatOut').value = '';
+      $('#pdfStudioQuestion').value = '';
+      pdfStudioShow('Text extracted. You can summarise or ask a question.', 'success');
+    } catch (e) {
+      pdfStudioShow(e.message || 'Extract failed.', 'error');
+    } finally {
+      button.textContent = prev;
+      button.disabled = false;
+    }
+  }
+
+  async function handlePdfStudioSummarize() {
+    if (!pdfStudio.text) {
+      pdfStudioShow('Extract a PDF first.', 'error');
+      return;
+    }
+    const button = $('#pdfStudioSummarizeBtn');
+    const prev = button.textContent;
+    button.textContent = 'Working...';
+    button.disabled = true;
+    try {
+      const res = await fetch(apiUrl('/api/tools/pdf-studio/summarize'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ text: pdfStudio.text }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.ok === false) throw new Error(data.error || 'Summary failed.');
+      pdfStudio.summary = data.summary || '';
+      $('#pdfStudioSummaryOut').value = pdfStudio.summary;
+      pdfStudioShow('Summary ready.', 'success');
+    } catch (e) {
+      pdfStudioShow(e.message || 'Summary failed.', 'error');
+    } finally {
+      button.textContent = prev;
+      button.disabled = false;
+    }
+  }
+
+  async function handlePdfStudioChat() {
+    if (!pdfStudio.text) {
+      pdfStudioShow('Extract a PDF first.', 'error');
+      return;
+    }
+    const message = $('#pdfStudioQuestion').value.trim();
+    const button = $('#pdfStudioChatBtn');
+    const prev = button.textContent;
+    button.textContent = 'Searching...';
+    button.disabled = true;
+    try {
+      const res = await fetch(apiUrl('/api/tools/pdf-studio/chat'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ text: pdfStudio.text, message }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.ok === false) throw new Error(data.error || 'Chat failed.');
+      pdfStudio.chatReply = data.reply || '';
+      $('#pdfStudioChatOut').value = pdfStudio.chatReply;
+      pdfStudioShow(message ? 'Answer updated.' : 'Overview generated.', 'success');
+    } catch (e) {
+      pdfStudioShow(e.message || 'Chat failed.', 'error');
+    } finally {
+      button.textContent = prev;
+      button.disabled = false;
+    }
+  }
+
+  function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function handlePdfStudioDownloadTxt() {
+    const text = pdfStudio.summary || $('#pdfStudioSummaryOut').value.trim();
+    if (!text) {
+      pdfStudioShow('Generate a summary first.', 'error');
+      return;
+    }
+    const base = (pdfStudio.fileName || 'sansa-document').replace(/\.pdf$/i, '');
+    downloadBlob(new Blob([text], { type: 'text/plain;charset=utf-8' }), `${base}-summary.txt`);
+    pdfStudioShow('Download started.', 'success');
+  }
+
+  async function handlePdfStudioDownloadPdf() {
+    const text = pdfStudio.summary || $('#pdfStudioSummaryOut').value.trim();
+    if (!text) {
+      pdfStudioShow('Generate a summary first.', 'error');
+      return;
+    }
+    const title = `${(pdfStudio.fileName || 'SANSA').replace(/\.pdf$/i, '')} — summary`.slice(0, 110);
+    try {
+      const res = await fetch(apiUrl('/api/tools/text-to-pdf'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ title, text }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'PDF export failed.');
+      }
+      const blob = await res.blob();
+      const base = (pdfStudio.fileName || 'sansa-document').replace(/\.pdf$/i, '');
+      downloadBlob(blob, `${base}-summary.pdf`);
+      pdfStudioShow('PDF download started.', 'success');
+    } catch (e) {
+      pdfStudioShow(e.message || 'PDF export failed.', 'error');
+    }
   }
 
   async function handleLogin(event) {
@@ -721,8 +880,13 @@
 
       const openApp = event.target.closest('[data-open-app]');
       if (openApp) {
+        const appId = openApp.dataset.openApp;
+        if (appId === 'pdf-studio') {
+          showView('pdf-studio');
+          return;
+        }
         if (!state.user) openAuth('login');
-        else openDashboardTool(openApp.dataset.openApp);
+        else openDashboardTool(appId);
       }
 
       const social = event.target.closest('[data-social]');
@@ -798,6 +962,11 @@
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') closePopups();
     });
+    $('#pdfStudioExtractBtn')?.addEventListener('click', handlePdfStudioExtract);
+    $('#pdfStudioSummarizeBtn')?.addEventListener('click', handlePdfStudioSummarize);
+    $('#pdfStudioChatBtn')?.addEventListener('click', handlePdfStudioChat);
+    $('#pdfStudioDownloadTxt')?.addEventListener('click', handlePdfStudioDownloadTxt);
+    $('#pdfStudioDownloadPdf')?.addEventListener('click', handlePdfStudioDownloadPdf);
     document.addEventListener('click', (event) => {
       if (!event.target.closest('.site-header, .mega-menu, .app-switcher, .profile-menu')) closePopups();
       if (event.target.closest('#logoutBtn')) logout();

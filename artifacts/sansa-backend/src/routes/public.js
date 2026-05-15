@@ -90,6 +90,7 @@ const {
   createToneFile,
   buildAssistantReply,
 } = require('../services/creativeSuite');
+const { extractiveSummary, chatFromDocument, truncateForStudio } = require('../services/pdfStudio');
 
 const router = express.Router();
 const toolUpload = multer({
@@ -1667,6 +1668,38 @@ router.post('/tools/pdf-to-text', toolUpload.single('pdf'), async (req, res, nex
       ok: false,
       error: 'PDF to Text failed. Install Python dependencies with PyPDF2 or set PYTHON_BIN correctly.',
     });
+  }
+});
+
+router.post('/tools/pdf-studio/summarize', async (req, res, next) => {
+  try {
+    const text = truncateForStudio(req.body?.text);
+    if (!text) {
+      return res.status(422).json({ ok: false, error: 'Text is required. Extract a PDF first.' });
+    }
+    const { summary, bullets } = extractiveSummary(text);
+    res.json({
+      ok: true,
+      summary,
+      bullets,
+      charCount: text.length,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/tools/pdf-studio/chat', async (req, res, next) => {
+  try {
+    const text = truncateForStudio(req.body?.text);
+    const message = String(req.body?.message || '').trim();
+    if (!text) {
+      return res.status(422).json({ ok: false, error: 'Document text is required.' });
+    }
+    const { reply, bullets } = chatFromDocument(text, message);
+    res.json({ ok: true, reply, bullets });
+  } catch (error) {
+    next(error);
   }
 });
 
