@@ -19,6 +19,10 @@
     chatReply: '',
   };
 
+  const businessOs = {
+    lastInvoicePayload: null,
+  };
+
   const categoryLabels = {
     all: 'All apps',
     beta: 'Beta',
@@ -573,9 +577,11 @@
     $('#appsView').classList.toggle('hidden', view !== 'home' && view !== 'apps');
     $('#pricingView').classList.toggle('hidden', view !== 'pricing');
     $('#pdfStudioView').classList.toggle('hidden', view !== 'pdf-studio');
+    $('#businessOsView').classList.toggle('hidden', view !== 'business-os');
     $('#dashboardView').classList.toggle('hidden', !isDashboard);
     window.location.hash = view === 'home' ? '#home' : `#${view}`;
     closePopups();
+    if (view === 'business-os') window.queueMicrotask(() => refreshBusinessOsView());
   }
 
   function openDashboardTool(appId) {
@@ -591,8 +597,8 @@
 
   function routeFromHash() {
     const raw = (window.location.hash.replace('#', '') || 'home').trim();
-    const view = raw === 'pdf-studio' ? 'pdf-studio' : raw;
-    if (view === 'pricing' || view === 'apps' || view === 'dashboard' || view === 'pdf-studio') showView(view);
+    const view = raw === 'pdf-studio' ? 'pdf-studio' : raw === 'business-os' ? 'business-os' : raw;
+    if (view === 'pricing' || view === 'apps' || view === 'dashboard' || view === 'pdf-studio' || view === 'business-os') showView(view);
     else showView('home');
   }
 
@@ -746,6 +752,227 @@
     }
   }
 
+  function businessOsShow(msg, type = 'error') {
+    showMessage('#businessOsMessage', msg, type);
+  }
+
+  function bosToday() {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  function collectBusinessInvoicePayload() {
+    const invoiceItems = [
+      {
+        name: $('#bosItem1Name').value.trim(),
+        qty: $('#bosItem1Qty').value,
+        rate: $('#bosItem1Rate').value,
+        tax: $('#bosItem1Tax').value,
+        hsn: $('#bosItem1Hsn').value.trim(),
+      },
+      {
+        name: $('#bosItem2Name').value.trim(),
+        qty: $('#bosItem2Qty').value,
+        rate: $('#bosItem2Rate').value,
+        tax: $('#bosItem2Tax').value,
+        hsn: $('#bosItem2Hsn').value.trim(),
+      },
+    ].filter((row) => row.name);
+    return {
+      service: 'invoice',
+      templateType: $('#bosTemplate').value || 'gst-invoice',
+      designTemplate: 'modern',
+      personName: $('#bosCustomerName').value.trim(),
+      contact: $('#bosCustomerContact').value.trim(),
+      details: '',
+      extraDetails: $('#bosTerms').value.trim(),
+      businessProfile: {
+        name: $('#bosBusinessName').value.trim(),
+        contact: $('#bosContact').value.trim(),
+        taxId: $('#bosGstin').value.trim(),
+        payment: $('#bosUpi').value.trim(),
+        address: $('#bosAddress').value.trim(),
+        terms: $('#bosTerms').value.trim(),
+      },
+      customerDetails: {
+        name: $('#bosCustomerName').value.trim(),
+        contact: $('#bosCustomerContact').value.trim(),
+        taxId: $('#bosCustomerGstin').value.trim(),
+        address: '',
+      },
+      invoiceItems,
+      invoiceTotals: {
+        discount: Number($('#bosDiscount').value || 0),
+        splitMode: $('#bosSplitMode').value,
+      },
+      invoiceMeta: {
+        invoiceNumber: $('#bosInvoiceNo').value.trim(),
+        invoiceDate: $('#bosInvoiceDate').value.trim(),
+        dueDate: $('#bosDueDate').value.trim(),
+        status: $('#bosPayStatus').value,
+        paidAmount: Number($('#bosPaidAmount').value || 0),
+      },
+    };
+  }
+
+  async function refreshBusinessLedger() {
+    const target = $('#bosLedgerOut');
+    if (!target) return;
+    try {
+      const data = await request('/api/payments/ledger');
+      const rows = data.ledger || [];
+      if (!rows.length) {
+        target.innerHTML = '<p class="muted">No payment rows yet.</p>';
+        return;
+      }
+      target.innerHTML = rows.slice(0, 12).map((row) => `
+        <div class="bos-ledger-row">
+          <span>${h(row.invoiceNumber || row.customerName || 'Payment')}</span>
+          <span>${h(String(row.amount ?? ''))}</span>
+          <span>${h(row.status || '')}</span>
+        </div>
+      `).join('');
+    } catch (e) {
+      target.innerHTML = `<p class="muted">${h(e.message)}</p>`;
+    }
+  }
+
+  async function refreshBusinessOsView() {
+    const dateInput = $('#bosInvoiceDate');
+    if (dateInput && !dateInput.value) dateInput.value = bosToday();
+
+    const hint = $('#bosProfileHint');
+    if (hint) {
+      hint.textContent = state.user
+        ? 'Profile saves to your SANSA account when you click Save.'
+        : 'Sign in to save your business profile.';
+    }
+
+    if (state.user) {
+      try {
+        const data = await request('/api/business/setup');
+        const s = data.setup || {};
+        $('#bosBusinessName').value = s.businessName || '';
+        $('#bosContact').value = s.contact || '';
+        $('#bosGstin').value = s.gstin || '';
+        $('#bosUpi').value = s.upi || '';
+      } catch (e) {
+        /* ignore */
+      }
+    }
+
+    await refreshBusinessLedger();
+  }
+
+  async function handleBosPreview() {
+    const button = $('#bosPreviewBtn');
+    const prev = button.textContent;
+    button.textContent = '…';
+    button.disabled = true;
+    try {
+      const payload = collectBusinessInvoicePayload();
+      if (!payload.invoiceItems.length) {
+        businessOsShow('Add at least one line item with a name.', 'error');
+        return;
+      }
+      const res = await fetch(apiUrl('/api/tools/business-os/invoice-preview'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.ok === false) throw new Error(data.error || 'Preview failed.');
+      businessOs.lastInvoicePayload = payload;
+      $('#bosPreviewOut').value = data.draft || '';
+      $('#bosUpiOut').textContent = data.paymentUrl
+        ? `UPI deep link: ${data.paymentUrl}`
+        : 'Add a UPI id (e.g. shop@paytm) in the payment field to generate a pay link.';
+      businessOsShow('Draft ready.', 'success');
+    } catch (e) {
+      businessOsShow(e.message || 'Preview failed.', 'error');
+    } finally {
+      button.textContent = prev;
+      button.disabled = false;
+    }
+  }
+
+  async function handleBosPdf() {
+    const payload = businessOs.lastInvoicePayload || collectBusinessInvoicePayload();
+    if (!payload.invoiceItems.length) {
+      businessOsShow('Add line items, then Preview or download.', 'error');
+      return;
+    }
+    try {
+      const res = await fetch(apiUrl('/api/services/pdf'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'PDF failed.');
+      }
+      const blob = await res.blob();
+      const inv = payload.invoiceMeta?.invoiceNumber || `sansa-${Date.now()}`;
+      const name = String(inv).replace(/[^\w.-]+/g, '-');
+      downloadBlob(blob, `${name}.pdf`);
+      businessOsShow('Invoice PDF downloaded.', 'success');
+    } catch (e) {
+      businessOsShow(e.message || 'PDF failed.', 'error');
+    }
+  }
+
+  async function handleBosSaveProfile() {
+    if (!state.user) {
+      openAuth('login');
+      businessOsShow('Please sign in to save your profile.', 'error');
+      return;
+    }
+    try {
+      await request('/api/business/setup', {
+        method: 'POST',
+        body: JSON.stringify({
+          businessName: $('#bosBusinessName').value.trim(),
+          contact: $('#bosContact').value.trim(),
+          gstin: $('#bosGstin').value.trim(),
+          upi: $('#bosUpi').value.trim(),
+        }),
+      });
+      businessOsShow('Business profile saved.', 'success');
+    } catch (e) {
+      businessOsShow(e.message || 'Save failed.', 'error');
+    }
+  }
+
+  async function handleBosGst() {
+    try {
+      const res = await fetch(apiUrl('/api/tools/business-os/gst-estimate'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          taxableSales: Number($('#bosGstSales').value || 0),
+          gstRate: Number($('#bosGstRate').value || 18),
+          inputTaxCredit: Number($('#bosGstItc').value || 0),
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.ok === false) throw new Error(data.error || 'GST estimate failed.');
+      $('#bosGstOut').textContent = [
+        `Taxable sales: Rs.${Number(data.taxableSales).toFixed(2)}`,
+        `GST @ ${data.gstRate}%: Rs.${Number(data.outputTax).toFixed(2)}`,
+        `Input tax credit: Rs.${Number(data.inputTaxCredit).toFixed(2)}`,
+        `Net payable (output − ITC): Rs.${Number(data.netPayable).toFixed(2)}`,
+        '',
+        'Note: illustrative only; consult your CA for filing.',
+      ].join('\n');
+      businessOsShow('GST estimate updated.', 'success');
+    } catch (e) {
+      businessOsShow(e.message || 'GST estimate failed.', 'error');
+    }
+  }
+
   async function handleLogin(event) {
     event.preventDefault();
     const email = $('#loginEmail').value.trim();
@@ -885,6 +1112,10 @@
           showView('pdf-studio');
           return;
         }
+        if (appId === 'business-os') {
+          showView('business-os');
+          return;
+        }
         if (!state.user) openAuth('login');
         else openDashboardTool(appId);
       }
@@ -967,6 +1198,11 @@
     $('#pdfStudioChatBtn')?.addEventListener('click', handlePdfStudioChat);
     $('#pdfStudioDownloadTxt')?.addEventListener('click', handlePdfStudioDownloadTxt);
     $('#pdfStudioDownloadPdf')?.addEventListener('click', handlePdfStudioDownloadPdf);
+    $('#bosPreviewBtn')?.addEventListener('click', handleBosPreview);
+    $('#bosPdfBtn')?.addEventListener('click', handleBosPdf);
+    $('#bosSaveProfileBtn')?.addEventListener('click', handleBosSaveProfile);
+    $('#bosRefreshLedgerBtn')?.addEventListener('click', refreshBusinessLedger);
+    $('#bosGstCalcBtn')?.addEventListener('click', handleBosGst);
     document.addEventListener('click', (event) => {
       if (!event.target.closest('.site-header, .mega-menu, .app-switcher, .profile-menu')) closePopups();
       if (event.target.closest('#logoutBtn')) logout();

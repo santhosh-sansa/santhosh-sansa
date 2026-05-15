@@ -1703,6 +1703,55 @@ router.post('/tools/pdf-studio/chat', async (req, res, next) => {
   }
 });
 
+router.post('/tools/business-os/invoice-preview', async (req, res, next) => {
+  try {
+    const body = {
+      service: 'invoice',
+      templateType: String(req.body?.templateType || 'gst-invoice').trim(),
+      personName: String(req.body?.personName || '').trim(),
+      contact: String(req.body?.contact || '').trim(),
+      details: String(req.body?.details || '').trim(),
+      extraDetails: String(req.body?.extraDetails || '').trim(),
+      businessProfile: normalizeBusinessProfile(req.body?.businessProfile),
+      customerDetails: normalizeCustomerDetails(req.body?.customerDetails),
+      invoiceItems: normalizeInvoiceItems(req.body?.invoiceItems),
+      invoiceTotals: req.body?.invoiceTotals || {},
+      invoiceMeta: req.body?.invoiceMeta || {},
+    };
+    const draft = buildServiceDraft(body);
+    const invoiceItems = normalizeInvoiceItems(req.body?.invoiceItems);
+    const totals = invoiceTotals(invoiceItems, body.invoiceTotals?.discount, body.invoiceTotals?.splitMode);
+    const meta = normalizeInvoiceMeta(body.invoiceMeta, totals);
+    const profile = normalizeBusinessProfile(req.body?.businessProfile);
+    const paymentUrl = upiPaymentUrl(profile, totals, meta);
+    res.json({
+      ok: true,
+      draft,
+      totals,
+      meta,
+      paymentUrl,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/tools/business-os/gst-estimate', (req, res) => {
+  const sales = numberValue(req.body?.taxableSales);
+  const rate = numberValue(req.body?.gstRate) || 18;
+  const itc = numberValue(req.body?.inputTaxCredit);
+  const outputTax = (sales * rate) / 100;
+  const netPayable = Math.max(0, outputTax - itc);
+  res.json({
+    ok: true,
+    taxableSales: sales,
+    gstRate: rate,
+    outputTax,
+    inputTaxCredit: itc,
+    netPayable,
+  });
+});
+
 router.post('/search', async (req, res, next) => {
   try {
     const message = String(req.body.message || '').trim();

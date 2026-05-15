@@ -923,3 +923,49 @@ a { color: inherit; text-decoration: none; }
   .pdf-studio-span-3 { grid-column: span 1; }
   .pdf-studio-grid { grid-template-columns: 1fr; }
 }
+
+.business-os-section .bos-inline {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+.business-os-section .bos-items {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+.business-os-section .bos-items th,
+.business-os-section .bos-items td {
+  border: 1px solid var(--line);
+  padding: 6px;
+  text-align: left;
+}
+.business-os-section .bos-items input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 4px;
+}
+.business-os-section .bos-pre {
+  margin: 0;
+  white-space: pre-wrap;
+  font-size: 0.88rem;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 10px;
+  min-height: 4rem;
+}
+.business-os-section .bos-ledger {
+  font-size: 0.85rem;
+  max-height: 220px;
+  overflow: auto;
+}
+.business-os-section .bos-ledger-row {
+  display: grid;
+  grid-template-columns: 1fr 80px 72px;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
