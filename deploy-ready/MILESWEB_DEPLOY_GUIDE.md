@@ -181,5 +181,6 @@ After the app is live, use these **in order**:
 | 1 — Stabilize (week 1) | `deploy-ready/STABILIZE_WEEK1_CHECKLIST.md` — daily smoke tests, Network tab review, error-log checks |
 | 2 — Backup & recovery | `deploy-ready/BACKUP_AND_RECOVERY_CHECKLIST.md` |
 | 3 — Secrets & env | `deploy-ready/SECRETS_AND_ENV_CHECKLIST.md` |
+| 4 — Roadmap / next release | `deploy-ready/ROADMAP_AND_RELEASE_PLANNING.md` |
 
 When other ops PRs merge on GitHub, `git pull origin main` to pick up additional `deploy-ready/*CHECKLIST.md` files and refresh this table if needed.
