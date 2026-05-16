@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#111111">
+  <title>SANSA AI | Creative, PDF, HRMS and Business AI Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=sansa-adobe-full-platform-2026-v1">
+</head>
+<body>
+  <div class="promo-bar" id="promoBar">
+    <strong>Launch offer:</strong> Start SANSA Creative Cloud-style workspace with free AI credits.
+    <button class="promo-button" data-open-auth="register">Start free</button>
+  </div>
+
+  <header class="site-header">
+    <a class="brand" href="#home" aria-label="SANSA home">
+      <img src="sansa-logo.png" alt="" onerror="this.style.display='none'">
+      <span>SANSA</span>
+    </a>
+    <nav class="top-nav" aria-label="Primary navigation">
+      <button class="nav-link" data-menu="creativity">Creativity & Design</button>
+      <button class="nav-link" data-menu="pdf">PDF & E-signatures</button>
+      <button class="nav-link" data-menu="marketing">Marketing & Commerce</button>
+      <button class="nav-link" data-menu="hrms">HRMS</button>
+      <button class="nav-link" data-menu="support">Help & Support</button>
+    </nav>
+    <div class="header-actions">
+      <button class="icon-grid" id="appSwitcherBtn" aria-label="Open app switcher"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></button>
+      <button class="ghost-button" data-route="pricing">View Pricing</button>
+      <button class="primary-button" id="signinButton" data-open-auth="login">Sign in</button>
+      <button class="avatar-button hidden" id="profileButton" aria-label="Open profile menu">SA</button>
+    </div>
+  </header>
+
+  <section class="mega-menu hidden" id="megaMenu" aria-live="polite"></section>
+  <section class="app-switcher hidden" id="appSwitcher" aria-label="App switcher"></section>
+  <section class="profile-menu hidden" id="profileMenu" aria-label="Profile menu"></section>
+
+  <main id="app">
+    <section class="hero-section" id="homeView">
+      <div class="hero-copy">
+        <span class="eyebrow">SANSA Creative Platform</span>
+        <h1 id="heroTitle">Create something new with SANSA AI.</h1>
+        <p id="heroSubtitle">Design visuals, edit PDFs, automate HR, manage payments and run AI workflows in one SANSA workspace.</p>
+        <div class="hero-actions">
+          <button class="outline-dark" data-open-auth="register">Free trial</button>
+          <button class="primary-button" data-route="pricing">Save today</button>
+        </div>
+      </div>
+      <div class="hero-art" aria-label="SANSA creative workspace preview">
+        <div class="shape-board">
+          <span class="shape-panel panel-pink"></span>
+          <span class="shape-panel panel-blue"></span>
+          <span class="shape-panel panel-yellow"></span>
+        </div>
+        <div class="studio-card">
+          <span class="badge">AI</span>
+          <h2>SANSA Creative Studio</h2>
+          <p>Image, poster, logo, video, PDF and business workflows.</p>
+          <div class="tool-grid">
+            <span>Image</span><span>Poster</span><span>PDF</span><span>HRMS</span><span>Pay</span><span>Stock</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="story-grid" id="storyGrid"></section>
+    <section class="catalog-section" id="appsView">
+      <div class="section-heading">
+        <h2>All SANSA apps</h2>
+        <p>Install-ready product cards for creative, PDF, business, HRMS and AI services.</p>
+      </div>
+      <div class="category-tabs" id="categoryTabs"></div>
+      <div class="apps-grid" id="appsGrid"></div>
+    </section>
+
+    <section class="pricing-section hidden" id="pricingView">
+      <div class="section-heading centered">
+        <h2>Plans and pricing for SANSA apps and more.</h2>
+        <p>Provider-ready checkout now, Razorpay or UPI keys can be added from MilesWeb environment variables.</p>
+      </div>
+      <div class="pricing-tabs" id="pricingTabs"></div>
+      <div class="pricing-grid" id="pricingGrid"></div>
+    </section>
+
+    <section class="workspace hidden" id="dashboardView">
+      <aside class="workspace-sidebar">
+        <button class="side-item active" data-route="dashboard">Home</button>
+        <button class="side-item" data-route="apps">Apps</button>
+        <button class="side-item" data-route="pdf-studio">PDF Studio</button>
+        <button class="side-item" data-route="image-studio">Image Studio</button>
+        <button class="side-item" data-route="video-studio">Video Studio</button>
+        <button class="side-item" data-route="creative-studio">Creative Studio</button>
+        <button class="side-item" data-route="firefly">Firefly AI</button>
+        <button class="side-item" data-route="hrms">HRMS</button>
+        <button class="side-item" data-route="invoice">Business</button>
+        <button class="side-item" data-route="express">Express</button>
+      </aside>
+      <section class="workspace-main">
+        <div class="workspace-hero">
+          <h2>Create something new</h2>
+          <div class="prompt-box">
+            <label for="promptInput">Prompt</label>
+            <textarea id="promptInput" placeholder="Describe what you want to generate"></textarea>
+            <button class="primary-button" id="generateMock">Generate</button>
+          </div>
+        </div>
+        <div class="workspace-cards" id="workspaceCards"></div>
+        <section class="ai-tools-section">
+          <div class="section-heading dark-heading">
+            <h2>AI creative tools</h2>
+            <p>Image, video, photo, translation, sound, music and assistant workflows are ready with SANSA fallback outputs.</p>
+          </div>
+          <div class="ai-tools-grid" id="aiToolsGrid"></div>
+          <div class="ai-history" id="aiHistory"></div>
+        </section>
+      </section>
+      <aside class="recent-panel">
+        <h3>Recent files</h3>
+        <div class="empty-file">No recent files yet</div>
+        <button class="outline-light">Upload</button>
+      </aside>
+    </section>
+    <!-- ===== PDF STUDIO ===== -->
+    <section class="tool-page hidden" id="pdfStudioView">
+      <div class="tool-header"><span class="tool-icon" style="background:#E3350D">PDF</span><div><h1>SANSA PDF Studio</h1><p>Create, convert, compress, sign, OCR and analyze PDF files</p></div></div>
+      <div class="tool-grid">
+        <div class="tool-card" data-tool-action="text-to-pdf"><i class="tool-emoji">📄</i><h3>Text to PDF</h3><p>Convert text content into a downloadable PDF document</p>
+          <form data-tool-form="text-to-pdf"><textarea name="text" placeholder="Enter text to convert to PDF..." rows="4" required></textarea><input name="title" placeholder="Document title (optional)"><button class="primary-button full" type="submit">Generate PDF</button></form>
+          <div class="tool-output hidden" id="output-text-to-pdf"></div></div>
+        <div class="tool-card" data-tool-action="pdf-to-text"><i class="tool-emoji">🔍</i><h3>PDF to Text</h3><p>Extract text from uploaded PDF files using AI</p>
+          <form data-tool-form="pdf-to-text" enctype="multipart/form-data"><input type="file" name="file" accept=".pdf" required><button class="primary-button full" type="submit">Extract Text</button></form>
+          <div class="tool-output hidden" id="output-pdf-to-text"></div></div>
+        <div class="tool-card"><i class="tool-emoji">📋</i><h3>Merge PDF</h3><p>Combine multiple PDF files into one document</p>
+          <form data-tool-form="merge-pdf" enctype="multipart/form-data"><input type="file" name="files" accept=".pdf" multiple required><button class="primary-button full" type="submit">Merge Files</button></form>
+          <div class="tool-output hidden" id="output-merge-pdf"></div></div>
+        <div class="tool-card"><i class="tool-emoji">📦</i><h3>Compress PDF</h3><p>Reduce PDF file size for sharing</p>
+          <form data-tool-form="compress-pdf" enctype="multipart/form-data"><input type="file" name="file" accept=".pdf" required><button class="primary-button full" type="submit">Compress</button></form>
+          <div class="tool-output hidden" id="output-compress-pdf"></div></div>
+        <div class="tool-card"><i class="tool-emoji">💬</i><h3>Chat with PDF</h3><p>Ask questions about your PDF content using AI</p>
+          <form data-tool-form="chat-pdf" enctype="multipart/form-data"><input type="file" name="file" accept=".pdf" required><textarea name="question" placeholder="What would you like to know about this PDF?" rows="2" required></textarea><button class="primary-button full" type="submit">Ask</button></form>
+          <div class="tool-output hidden" id="output-chat-pdf"></div></div>
+        <div class="tool-card"><i class="tool-emoji">✍️</i><h3>E-Sign PDF</h3><p>Add your digital signature to PDF documents</p>
+          <form data-tool-form="esign-pdf"><textarea name="text" placeholder="Type your signature name" rows="1" required></textarea><button class="primary-button full" type="submit">Create Signature</button></form>
+          <div class="tool-output hidden" id="output-esign-pdf"></div></div>
+      </div>
+    </section>
+
+    <!-- ===== IMAGE STUDIO ===== -->
+    <section class="tool-page hidden" id="imageStudioView">
+      <div class="tool-header"><span class="tool-icon" style="background:#31A8FF">Ps</span><div><h1>SANSA Image Studio</h1><p>Photoshop-style image editing, cleanup and export workflow</p></div></div>
+      <div class="tool-grid">
+        <div class="tool-card"><i class="tool-emoji">🎨</i><h3>AI Image Generator</h3><p>Generate images from text prompts</p>
+          <form data-tool-form="gen-image"><textarea name="prompt" placeholder="A premium business poster with modern AI theme" rows="3" required></textarea><select name="style"><option>cinematic</option><option>realistic</option><option>poster</option><option>minimal</option><option>neon</option></select><button class="primary-button full" type="submit">Generate Image</button></form>
+          <div class="tool-output hidden" id="output-gen-image"></div></div>
+        <div class="tool-card"><i class="tool-emoji">✨</i><h3>Photo Enhance</h3><p>Enhance photo quality with AI filters</p>
+          <form data-tool-form="enhance-photo" enctype="multipart/form-data"><input type="file" name="photo" accept="image/*" required><select name="effect"><option>enhance</option><option>background-ready</option><option>color-pop</option><option>product-clean</option></select><button class="primary-button full" type="submit">Enhance</button></form>
+          <div class="tool-output hidden" id="output-enhance-photo"></div></div>
+        <div class="tool-card"><i class="tool-emoji">🖼️</i><h3>Background Remover</h3><p>Remove or replace image backgrounds</p>
+          <form data-tool-form="remove-bg" enctype="multipart/form-data"><input type="file" name="photo" accept="image/*" required><button class="primary-button full" type="submit">Remove Background</button></form>
+          <div class="tool-output hidden" id="output-remove-bg"></div></div>
+        <div class="tool-card"><i class="tool-emoji">📐</i><h3>Resize & Crop</h3><p>Resize images for social media and web</p>
+          <form data-tool-form="resize-image" enctype="multipart/form-data"><input type="file" name="photo" accept="image/*" required><select name="size"><option value="1080x1080">Instagram (1080x1080)</option><option value="1200x630">Facebook (1200x630)</option><option value="1280x720">YouTube (1280x720)</option><option value="800x800">Product (800x800)</option></select><button class="primary-button full" type="submit">Resize</button></form>
+          <div class="tool-output hidden" id="output-resize-image"></div></div>
+      </div>
+    </section>
+
+    <!-- ===== VIDEO STUDIO ===== -->
+    <section class="tool-page hidden" id="videoStudioView">
+      <div class="tool-header"><span class="tool-icon" style="background:#9999FF">Pr</span><div><h1>SANSA Video Studio</h1><p>Premiere-style storyboards, captions, shot lists and edit plans</p></div></div>
+      <div class="tool-grid">
+        <div class="tool-card"><i class="tool-emoji">🎬</i><h3>AI Video Editor</h3><p>Upload and process video with AI effects</p>
+          <form data-tool-form="edit-video" enctype="multipart/form-data"><input type="file" name="video" accept="video/*" required><select name="effect"><option>cinematic</option><option>social-cut</option><option>clean-up</option><option>subtitle-ready</option></select><button class="primary-button full" type="submit">Process Video</button></form>
+          <div class="tool-output hidden" id="output-edit-video"></div></div>
+        <div class="tool-card"><i class="tool-emoji">🌐</i><h3>Video Translation</h3><p>Generate subtitle translations for videos</p>
+          <form data-tool-form="translate-video"><input name="videoUrl" placeholder="Paste video URL or file name" required><select name="targetLanguage"><option value="ta">Tamil</option><option value="hi">Hindi</option><option value="te">Telugu</option><option value="ml">Malayalam</option><option value="en">English</option></select><button class="primary-button full" type="submit">Translate</button></form>
+          <div class="tool-output hidden" id="output-translate-video"></div></div>
+        <div class="tool-card"><i class="tool-emoji">📝</i><h3>Storyboard Creator</h3><p>Generate a shot-by-shot storyboard from your script</p>
+          <form data-tool-form="storyboard"><textarea name="message" placeholder="Describe your video concept or paste script..." rows="4" required></textarea><button class="primary-button full" type="submit">Generate Storyboard</button></form>
+          <div class="tool-output hidden" id="output-storyboard"></div></div>
+        <div class="tool-card"><i class="tool-emoji">🔊</i><h3>AI Sound Effects</h3><p>Generate sound effects for your videos</p>
+          <form data-tool-form="gen-sound"><textarea name="description" placeholder="Fast whoosh for app intro" rows="2" required></textarea><input name="duration" type="number" placeholder="Duration (seconds)" value="5"><button class="primary-button full" type="submit">Generate Sound</button></form>
+          <div class="tool-output hidden" id="output-gen-sound"></div></div>
+        <div class="tool-card"><i class="tool-emoji">🎵</i><h3>AI Music Generator</h3><p>Create background music for your projects</p>
+          <form data-tool-form="gen-music"><textarea name="prompt" placeholder="Modern corporate intro with warm synths" rows="2" required></textarea><select name="genre"><option>ambient</option><option>electronic</option><option>classical</option><option>cinematic</option></select><button class="primary-button full" type="submit">Generate Music</button></form>
+          <div class="tool-output hidden" id="output-gen-music"></div></div>
+      </div>
+    </section>
+
+    <!-- ===== CREATIVE STUDIO ===== -->
+    <section class="tool-page hidden" id="creativeStudioView">
+      <div class="tool-header"><span class="tool-icon" style="background:#FF3366">CS</span><div><h1>SANSA Creative Studio</h1><p>Poster, logo, invitation, banner, thumbnail and brand kit workspace</p></div></div>
+      <div class="tool-grid">
+        <div class="tool-card"><i class="tool-emoji">🖌️</i><h3>Poster Maker</h3><p>Create stunning posters with AI assistance</p>
+          <form data-tool-form="poster"><textarea name="prompt" placeholder="Design a modern business launch poster for SANSA AI" rows="3" required></textarea><select name="style"><option>cinematic</option><option>minimal</option><option>neon</option><option>poster</option><option>realistic</option></select><button class="primary-button full" type="submit">Create Poster</button></form>
+          <div class="tool-output hidden" id="output-poster"></div></div>
+        <div class="tool-card"><i class="tool-emoji">💫</i><h3>Logo Designer</h3><p>Generate logo concepts with AI</p>
+          <form data-tool-form="logo"><textarea name="prompt" placeholder="Modern minimalist logo for a tech startup called 'SANSA'" rows="3" required></textarea><button class="primary-button full" type="submit">Design Logo</button></form>
+          <div class="tool-output hidden" id="output-logo"></div></div>
+        <div class="tool-card"><i class="tool-emoji">📱</i><h3>Social Media Templates</h3><p>Generate Instagram, Facebook & YouTube graphics</p>
+          <form data-tool-form="social-template"><textarea name="prompt" placeholder="Instagram story for a product launch" rows="2" required></textarea><select name="style"><option value="1080x1080">Instagram Post</option><option value="1080x1920">Instagram Story</option><option value="1200x630">Facebook Post</option><option value="1280x720">YouTube Thumbnail</option></select><button class="primary-button full" type="submit">Generate Template</button></form>
+          <div class="tool-output hidden" id="output-social-template"></div></div>
+        <div class="tool-card"><i class="tool-emoji">🎴</i><h3>Business Card</h3><p>Design professional business cards</p>
+          <form data-tool-form="business-card"><input name="prompt" placeholder="Name, title, company, phone, email" required><button class="primary-button full" type="submit">Design Card</button></form>
+          <div class="tool-output hidden" id="output-business-card"></div></div>
+      </div>
+    </section>
+
+    <!-- ===== FIREFLY (AI TOOLS) ===== -->
+    <section class="tool-page hidden" id="fireflyView">
+      <div class="tool-header"><span class="tool-icon" style="background:#FF6B3D">Fi</span><div><h1>SANSA Firefly</h1><p>AI-powered image, video, sound, music and translation workflows</p></div></div>
+      <div class="tool-grid" id="fireflyToolsGrid"></div>
+    </section>
+
+    <!-- ===== HRMS ===== -->
+    <section class="tool-page hidden" id="hrmsView">
+      <div class="tool-header"><span class="tool-icon" style="background:#6C5CE7">HR</span><div><h1>SANSA HRMS</h1><p>Employee management, attendance, leave and payroll workflows</p></div></div>
+      <div class="tool-grid">
+        <div class="tool-card"><i class="tool-emoji">👥</i><h3>Employee Records</h3><p>Manage employee profiles and documents</p>
+          <form data-tool-form="add-employee"><input name="name" placeholder="Employee name" required><input name="email" placeholder="Email" required><input name="designation" placeholder="Designation"><input name="department" placeholder="Department"><button class="primary-button full" type="submit">Add Employee</button></form>
+          <div class="tool-output hidden" id="output-add-employee"></div></div>
+        <div class="tool-card"><i class="tool-emoji">📅</i><h3>Attendance Tracker</h3><p>Track daily attendance and work hours</p>
+          <form data-tool-form="attendance"><select name="action"><option value="check-in">Check In</option><option value="check-out">Check Out</option></select><input name="employeeId" placeholder="Employee ID or email" required><button class="primary-button full" type="submit">Mark Attendance</button></form>
+          <div class="tool-output hidden" id="output-attendance"></div></div>
+        <div class="tool-card"><i class="tool-emoji">🏖️</i><h3>Leave Management</h3><p>Apply for and approve leave requests</p>
+          <form data-tool-form="leave-request"><input name="employeeId" placeholder="Employee ID or email" required><select name="leaveType"><option>Casual Leave</option><option>Sick Leave</option><option>Earned Leave</option><option>Work From Home</option></select><input type="date" name="fromDate" required><input type="date" name="toDate" required><textarea name="reason" placeholder="Reason" rows="2"></textarea><button class="primary-button full" type="submit">Apply Leave</button></form>
+          <div class="tool-output hidden" id="output-leave-request"></div></div>
+        <div class="tool-card"><i class="tool-emoji">💰</i><h3>Payroll Data</h3><p>Generate payroll-ready data for employees</p>
+          <form data-tool-form="payroll"><input name="month" placeholder="Month (e.g. May 2026)" required><button class="primary-button full" type="submit">Generate Payroll</button></form>
+          <div class="tool-output hidden" id="output-payroll"></div></div>
+        <div class="tool-card"><i class="tool-emoji">📄</i><h3>Offer Letter Generator</h3><p>Generate formatted offer letters</p>
+          <form data-tool-form="offer-letter"><input name="candidateName" placeholder="Candidate name" required><input name="designation" placeholder="Designation" required><input name="salary" placeholder="CTC / Salary" required><input name="joiningDate" placeholder="Joining date" required><button class="primary-button full" type="submit">Generate Letter</button></form>
+          <div class="tool-output hidden" id="output-offer-letter"></div></div>
+        <div class="tool-card"><i class="tool-emoji">🤖</i><h3>AI HR Assistant</h3><p>Ask HR-related questions to AI</p>
+          <form data-tool-form="hr-assistant"><textarea name="message" placeholder="Ask about HR policies, compliance, hiring..." rows="3" required></textarea><button class="primary-button full" type="submit">Ask AI</button></form>
+          <div class="tool-output hidden" id="output-hr-assistant"></div></div>
+      </div>
+    </section>
+
+    <!-- ===== INVOICE & BUSINESS ===== -->
+    <section class="tool-page hidden" id="invoiceView">
+      <div class="tool-header"><span class="tool-icon" style="background:#00B894">₹</span><div><h1>SANSA Business Suite</h1><p>Invoice, payments, GST reports and CFO dashboard</p></div></div>
+      <div class="tool-grid">
+        <div class="tool-card"><i class="tool-emoji">🧾</i><h3>Create Invoice</h3><p>Generate professional GST invoices</p>
+          <form data-tool-form="create-invoice"><input name="customerName" placeholder="Customer name" required><input name="customerEmail" placeholder="Customer email"><input name="items" placeholder="Items: Product1:1000, Product2:500" required><input name="gstRate" type="number" placeholder="GST rate (%)" value="18"><button class="primary-button full" type="submit">Create Invoice</button></form>
+          <div class="tool-output hidden" id="output-create-invoice"></div></div>
+        <div class="tool-card"><i class="tool-emoji">💳</i><h3>Payment Link</h3><p>Create UPI / Razorpay payment links</p>
+          <form data-tool-form="payment-link"><input name="customerName" placeholder="Customer name" required><input name="amount" type="number" placeholder="Amount (₹)" required><input name="description" placeholder="Payment for..." required><button class="primary-button full" type="submit">Create Payment Link</button></form>
+          <div class="tool-output hidden" id="output-payment-link"></div></div>
+        <div class="tool-card"><i class="tool-emoji">📊</i><h3>GST Report</h3><p>Generate GST-compliant tax reports</p>
+          <form data-tool-form="gst-report"><select name="period"><option>This Month</option><option>Last Month</option><option>This Quarter</option><option>This Year</option></select><button class="primary-button full" type="submit">Generate Report</button></form>
+          <div class="tool-output hidden" id="output-gst-report"></div></div>
+        <div class="tool-card"><i class="tool-emoji">📈</i><h3>CFO Dashboard</h3><p>Financial overview and business insights</p>
+          <form data-tool-form="cfo-dashboard"><button class="primary-button full" type="submit">Load Dashboard</button></form>
+          <div class="tool-output hidden" id="output-cfo-dashboard"></div></div>
+        <div class="tool-card"><i class="tool-emoji">📒</i><h3>Customer Ledger</h3><p>Track all customer payments and dues</p>
+          <form data-tool-form="customer-ledger"><button class="primary-button full" type="submit">View Ledger</button></form>
+          <div class="tool-output hidden" id="output-customer-ledger"></div></div>
+      </div>
+    </section>
+
+    <!-- ===== SANSA EXPRESS ===== -->
+    <section class="tool-page hidden" id="expressView">
+      <div class="tool-header"><span class="tool-icon" style="background:#FF61A6">Ex</span><div><h1>SANSA Express</h1><p>All-in-one design, video, photo and PDF app for quick tasks</p></div></div>
+      <div class="tool-grid">
+        <div class="tool-card"><i class="tool-emoji">⚡</i><h3>Quick Design</h3><p>Create a design from a text prompt</p>
+          <form data-tool-form="quick-design"><textarea name="prompt" placeholder="Create a flyer for a weekend sale at 50% off" rows="3" required></textarea><button class="primary-button full" type="submit">Generate Design</button></form>
+          <div class="tool-output hidden" id="output-quick-design"></div></div>
+        <div class="tool-card"><i class="tool-emoji">📹</i><h3>Quick Video</h3><p>Create a short video from text prompt</p>
+          <form data-tool-form="quick-video"><textarea name="prompt" placeholder="10-second product demo video for social media" rows="3" required></textarea><button class="primary-button full" type="submit">Generate Video Plan</button></form>
+          <div class="tool-output hidden" id="output-quick-video"></div></div>
+        <div class="tool-card"><i class="tool-emoji">📄</i><h3>Quick PDF</h3><p>Create a PDF from text instantly</p>
+          <form data-tool-form="quick-pdf"><textarea name="text" placeholder="Enter text to convert to PDF..." rows="4" required></textarea><button class="primary-button full" type="submit">Create PDF</button></form>
+          <div class="tool-output hidden" id="output-quick-pdf"></div></div>
+        <div class="tool-card"><i class="tool-emoji">🔄</i><h3>QR Code Generator</h3><p>Generate QR codes for URLs and text</p>
+          <form data-tool-form="qr-code"><input name="text" placeholder="URL or text for QR code" required><button class="primary-button full" type="submit">Generate QR</button></form>
+          <div class="tool-output hidden" id="output-qr-code"></div></div>
+      </div>
+    </section>
+
+  </main>
+
+  <section class="modal hidden" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <div class="auth-shell">
+      <div class="auth-visual">
+        <div class="auth-brand">SANSA</div>
+        <p>Sign in or create an account</p>
+      </div>
+      <div class="auth-card">
+        <button class="close-button" id="closeAuth" aria-label="Close">x</button>
+        <div class="auth-tabs">
+          <button class="active" data-auth-tab="login">Sign in</button>
+          <button data-auth-tab="register">Create account</button>
+        </div>
+        <div id="authMessage" class="message hidden"></div>
+        <form id="loginForm" class="auth-panel">
+          <h2 id="authTitle">Sign in</h2>
+          <label>Email address<input type="email" id="loginEmail" autocomplete="email" required></label>
+          <label>Password<input type="password" id="loginPassword" autocomplete="current-password" required></label>
+          <button class="primary-button full" type="submit">Continue</button>
+          <div class="divider">Or</div>
+          <div class="social-list">
+            <button type="button" data-social="Google">Continue with Google</button>
+            <button type="button" data-social="Facebook">Continue with Facebook</button>
+            <button type="button" data-social="Apple">Continue with Apple</button>
+            <button type="button" data-social="Microsoft">Continue with Microsoft</button>
+            <button type="button" id="guestDemoBtn">Guest demo</button>
+          </div>
+        </form>
+        <form id="registerForm" class="auth-panel hidden">
+          <h2>Create an account</h2>
+          <label>Full name<input type="text" id="regName" autocomplete="name" required></label>
+          <label>Email address<input type="email" id="regEmail" autocomplete="email" required></label>
+          <label>Mobile number<input type="tel" id="regMobile" autocomplete="tel" required></label>
+          <label>Password<input type="password" id="regPassword" autocomplete="new-password" required></label>
+          <label>Confirm password<input type="password" id="regConfirm" autocomplete="new-password" required></label>
+          <label>User type
+            <select id="regUserType">
+              <option value="business-owner">Business Owner</option>
+              <option value="creator">Creator</option>
+              <option value="student">Student</option>
+              <option value="developer">Developer</option>
+            </select>
+          </label>
+          <button class="primary-button full" type="submit">Register & continue</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <section class="admin-panel hidden" id="adminPanel">
+    <div class="admin-card">
+      <button class="close-button" id="closeAdmin">x</button>
+      <h2>Admin control</h2>
+      <div id="adminStatus" class="message hidden"></div>
+      <div class="admin-grid">
+        <label>Promo text<input id="adminPromoText"></label>
+        <label>Hero title<input id="adminHeroTitle"></label>
+        <label>Hero subtitle<textarea id="adminHeroSubtitle"></textarea></label>
+      </div>
+      <div class="admin-actions">
+        <button class="primary-button" id="saveAdminSettings">Save settings</button>
+        <button class="ghost-button" id="refreshUsers">Refresh users</button>
+      </div>
+      <div class="admin-stats" id="adminStats"></div>
+      <div class="admin-users" id="adminUsers"></div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div>
+      <strong>SANSA AI</strong>
+      <p>Original SANSA platform inspired by familiar creative-suite workflows.</p>
+    </div>
+    <div class="footer-links">
+      <a href="#apps">All apps</a>
+      <a href="#pricing">Plans</a>
+      <a href="#support">Support</a>
+      <a href="#privacy">Privacy</a>
+    </div>
+  </footer>
+
+  <script src="sansa-config.js"></script>
+  <script src="app.js?v=sansa-adobe-full-platform-2026-v1"></script>
+</body>
+</html>

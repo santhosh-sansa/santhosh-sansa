@@ -48,7 +48,11 @@ Thumbs.db
 .cache/
 .local/
 
-# Root-level bulk uploads (GitHub “Add files via upload”). Prefer Releases, S3, or Drive — not git.
+# Local env (never commit secrets)
+sansa-backend/.env
+artifacts/sansa-backend/.env
+
+# Root-level bulk uploads (GitHub "Add files via upload"). Prefer Releases, S3, or Drive — not git.
 /*.zip
 /*.rar
 

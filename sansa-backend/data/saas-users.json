@@ -1,0 +1,44 @@
+[
+  {
+    "id": "social-google-1778548949284",
+    "email": "public-google-mp1y4ge1-3ru3shw8@sansaai.in",
+    "name": "Google Public User",
+    "fullname": "Google Public User",
+    "mobile": "0000000000",
+    "userType": "google-public",
+    "user_type": "google-public",
+    "planId": "free",
+    "plan_id": "free",
+    "plan": "Free",
+    "credits": 50,
+    "password_hash": "$2a$10$sZLolj6llGPosEvKF1GN6ucMPKpf2rMpeWX4QJkHtXCZNO5IRsLsy",
+    "authProvider": "google",
+    "role": "owner",
+    "status": "active",
+    "createdAt": "2026-05-12T01:22:29.284Z"
+  },
+  {
+    "id": "local-1778488582628",
+    "email": "sandytechone@gmail.com",
+    "name": "Santhosh Raj V",
+    "mobile": "6383454985",
+    "userType": "admin-request",
+    "password_hash": "$2a$10$dYN2Kjdy8xfNUc.dkmqoTuSc5pHslB7ADtma5vJ0hIxRSXX7ISSNG",
+    "role": "owner",
+    "status": "active",
+    "createdAt": "2026-05-11T08:36:22.628Z",
+    "credits": 10,
+    "updatedAt": "2026-05-12T00:53:39.760Z"
+  },
+  {
+    "id": "local-1778480568602",
+    "email": "admin@sansaai.in",
+    "name": "",
+    "password_hash": "$2a$10$lNgUI/L7nLvAZ5gbwaJ3lO55lGN3E1kuccN1JJGhCNNzWU8AO1ud.",
+    "role": "owner",
+    "status": "active",
+    "createdAt": "2026-05-11T06:22:48.602Z",
+    "credits": 10,
+    "updatedAt": "2026-05-12T00:53:41.302Z"
+  }
+]
