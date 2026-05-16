@@ -48,6 +48,10 @@ Thumbs.db
 .cache/
 .local/
 
+# Root-level bulk uploads (GitHub “Add files via upload”). Prefer Releases, S3, or Drive — not git.
+/*.zip
+/*.rar
+
 # SANSA backend runtime dirs (created at startup / uploads)
 artifacts/sansa-backend/uploads/**
 artifacts/sansa-backend/tmp/**
