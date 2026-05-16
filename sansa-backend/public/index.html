@@ -13,7 +13,7 @@
 <body>
   <div class="promo-bar" id="promoBar">
     <strong>Launch offer:</strong> Start SANSA Creative Cloud-style workspace with free AI credits.
-    <button class="promo-button" data-open-auth="register">Start free</button>
+    <button class="promo-button" data-route="apps">Explore apps</button>
   </div>
 
   <header class="site-header">
@@ -31,14 +31,11 @@
     <div class="header-actions">
       <button class="icon-grid" id="appSwitcherBtn" aria-label="Open app switcher"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></button>
       <button class="ghost-button" data-route="pricing">View Pricing</button>
-      <button class="primary-button" id="signinButton" data-open-auth="login">Sign in</button>
-      <button class="avatar-button hidden" id="profileButton" aria-label="Open profile menu">SA</button>
     </div>
   </header>
 
   <section class="mega-menu hidden" id="megaMenu" aria-live="polite"></section>
   <section class="app-switcher hidden" id="appSwitcher" aria-label="App switcher"></section>
-  <section class="profile-menu hidden" id="profileMenu" aria-label="Profile menu"></section>
 
   <main id="app">
     <section class="hero-section" id="homeView">
@@ -47,7 +44,7 @@
         <h1 id="heroTitle">Create something new with SANSA AI.</h1>
         <p id="heroSubtitle">Design visuals, edit PDFs, automate HR, manage payments and run AI workflows in one SANSA workspace.</p>
         <div class="hero-actions">
-          <button class="outline-dark" data-open-auth="register">Free trial</button>
+          <button class="outline-dark" data-route="apps">Explore apps</button>
           <button class="primary-button" data-route="pricing">Save today</button>
         </div>
       </div>
@@ -284,53 +281,7 @@
 
   </main>
 
-  <section class="modal hidden" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
-    <div class="auth-shell">
-      <div class="auth-visual">
-        <div class="auth-brand">SANSA</div>
-        <p>Sign in or create an account</p>
-      </div>
-      <div class="auth-card">
-        <button class="close-button" id="closeAuth" aria-label="Close">x</button>
-        <div class="auth-tabs">
-          <button class="active" data-auth-tab="login">Sign in</button>
-          <button data-auth-tab="register">Create account</button>
-        </div>
-        <div id="authMessage" class="message hidden"></div>
-        <form id="loginForm" class="auth-panel">
-          <h2 id="authTitle">Sign in</h2>
-          <label>Email address<input type="email" id="loginEmail" autocomplete="email" required></label>
-          <label>Password<input type="password" id="loginPassword" autocomplete="current-password" required></label>
-          <button class="primary-button full" type="submit">Continue</button>
-          <div class="divider">Or</div>
-          <div class="social-list">
-            <button type="button" data-social="Google">Continue with Google</button>
-            <button type="button" data-social="Facebook">Continue with Facebook</button>
-            <button type="button" data-social="Apple">Continue with Apple</button>
-            <button type="button" data-social="Microsoft">Continue with Microsoft</button>
-            <button type="button" id="guestDemoBtn">Guest demo</button>
-          </div>
-        </form>
-        <form id="registerForm" class="auth-panel hidden">
-          <h2>Create an account</h2>
-          <label>Full name<input type="text" id="regName" autocomplete="name" required></label>
-          <label>Email address<input type="email" id="regEmail" autocomplete="email" required></label>
-          <label>Mobile number<input type="tel" id="regMobile" autocomplete="tel" required></label>
-          <label>Password<input type="password" id="regPassword" autocomplete="new-password" required></label>
-          <label>Confirm password<input type="password" id="regConfirm" autocomplete="new-password" required></label>
-          <label>User type
-            <select id="regUserType">
-              <option value="business-owner">Business Owner</option>
-              <option value="creator">Creator</option>
-              <option value="student">Student</option>
-              <option value="developer">Developer</option>
-            </select>
-          </label>
-          <button class="primary-button full" type="submit">Register & continue</button>
-        </form>
-      </div>
-    </div>
-  </section>
+  <div id="siteNotice" class="message hidden" role="status" aria-live="polite" style="position:fixed;bottom:1rem;right:1rem;z-index:1200;max-width:min(90vw,360px);"></div>
 
   <section class="admin-panel hidden" id="adminPanel">
     <div class="admin-card">
@@ -361,6 +312,7 @@
       <a href="#pricing">Plans</a>
       <a href="#support">Support</a>
       <a href="#privacy">Privacy</a>
+      <a href="/admin/login" target="_blank" rel="noopener">Staff login</a>
     </div>
   </footer>
 

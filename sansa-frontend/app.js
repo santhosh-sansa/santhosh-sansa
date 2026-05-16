@@ -193,8 +193,12 @@
   }
 
   async function loadMe() {
-    const data = await request('/api/auth/me');
-    state.user = data.user || null;
+    try {
+      const data = await request('/api/auth/me');
+      state.user = data.user || null;
+    } catch {
+      state.user = null;
+    }
   }
 
   async function loadAdmin() {
@@ -231,9 +235,7 @@
     renderPricingTabs();
     renderPricing();
     renderSwitcher();
-    renderProfile();
     renderWorkspace();
-    renderAuthState();
     if (state.admin) renderAdminFields();
   }
 
@@ -241,7 +243,7 @@
     const settings = state.settings || {};
     const promo = settings.promo || {};
     const hero = settings.hero || {};
-    $('#promoBar').innerHTML = `<strong>${h(promo.label || 'Launch offer:')}</strong> ${h(promo.text || 'Start SANSA Creative Cloud-style workspace with free AI credits.')} <button class="promo-button" data-open-auth="register">${h(promo.cta || 'Start free')}</button>`;
+    $('#promoBar').innerHTML = `<strong>${h(promo.label || 'Launch offer:')}</strong> ${h(promo.text || 'Start SANSA Creative Cloud-style workspace with free AI credits.')} <button class="promo-button" data-route="apps">${h(promo.cta || 'Explore apps')}</button>`;
     $('#heroTitle').textContent = hero.title || 'Create something new with SANSA AI.';
     $('#heroSubtitle').textContent = hero.subtitle || 'Design visuals, edit PDFs, automate HR, manage payments and run AI workflows in one SANSA workspace.';
   }
@@ -326,22 +328,6 @@
     `;
   }
 
-  function renderProfile() {
-    const user = state.user;
-    if (!user) return;
-    $('#profileMenu').innerHTML = `
-      <div class="profile-card">
-        <h3>${h(user.name || user.fullName || 'SANSA User')}</h3>
-        <p>${h(user.email || '')}</p>
-        <small>${h(user.plan || user.planId || 'Free')} plan / ${h(user.credits ?? 0)} credits</small>
-        <a href="#dashboard">Manage account</a>
-      </div>
-      <a href="#pricing">View all plans</a>
-      ${state.admin ? '<button type="button" id="openAdminPanel">Admin control</button>' : ''}
-      <button type="button" id="logoutBtn">Sign out</button>
-    `;
-  }
-
   function renderWorkspace() {
     const cards = (state.apps || []).slice(0, 6);
     $('#workspaceCards').innerHTML = cards.map((app) => `
@@ -393,10 +379,12 @@
   }
 
   async function loadAiHistory() {
-    if (!state.user || !$('#aiHistory')) return;
-    const data = await request('/api/ai/history');
-    const history = data.history || [];
-    $('#aiHistory').innerHTML = `
+    const host = $('#aiHistory');
+    if (!host) return;
+    try {
+      const data = await request('/api/ai/history');
+      const history = data.history || [];
+      host.innerHTML = `
       <h3>Recent AI outputs</h3>
       ${history.length ? history.slice(0, 6).map((item) => `
         <div class="history-row">
@@ -405,16 +393,15 @@
         </div>
       `).join('') : '<p>No AI outputs yet.</p>'}
     `;
+    } catch {
+      host.innerHTML = '<h3>Recent AI outputs</h3><p>No history available.</p>';
+    }
   }
 
   async function handleAiSubmit(event) {
     const form = event.target.closest('[data-ai-form]');
     if (!form) return;
     event.preventDefault();
-    if (!state.user) {
-      openAuth('login');
-      return;
-    }
     const tool = aiTools.find((item) => item.id === form.dataset.aiForm);
     if (!tool) return;
     const button = form.querySelector('button[type="submit"]');
@@ -433,25 +420,14 @@
       const res = await fetch(apiUrl(tool.endpoint), options);
       const data = await res.json().catch(() => ({}));
       if (!res.ok || data.ok === false || data.success === false) throw new Error(data.error || data.message || 'Tool failed.');
-      if (data.remainingCredits !== undefined) state.user.credits = data.remainingCredits;
+      if (state.user && data.remainingCredits !== undefined) state.user.credits = data.remainingCredits;
       renderAiResult(tool.id, data);
-      renderProfile();
       await loadAiHistory();
     } catch (error) {
       renderAiResult(tool.id, { message: error.message });
     } finally {
       button.textContent = previous;
       button.disabled = false;
-    }
-  }
-
-  function renderAuthState() {
-    const user = state.user;
-    $('#signinButton').classList.toggle('hidden', Boolean(user));
-    $('#profileButton').classList.toggle('hidden', !user);
-    if (user) {
-      const label = String(user.name || user.fullName || user.email || 'SA').trim();
-      $('#profileButton').textContent = label.split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase();
     }
   }
 
@@ -495,23 +471,9 @@
     `;
   }
 
-  function openAuth(tab = 'login') {
-    $('#authModal').classList.remove('hidden');
-    switchAuthTab(tab);
-    $('#loginEmail')?.focus();
-  }
-
-  function switchAuthTab(tab) {
-    const isLogin = tab === 'login';
-    $$('[data-auth-tab]').forEach((button) => button.classList.toggle('active', button.dataset.authTab === tab));
-    $('#loginForm').classList.toggle('hidden', !isLogin);
-    $('#registerForm').classList.toggle('hidden', isLogin);
-  }
-
   function closePopups() {
     $('#megaMenu').classList.add('hidden');
     $('#appSwitcher').classList.add('hidden');
-    $('#profileMenu').classList.add('hidden');
     $$('.nav-link').forEach((button) => button.classList.remove('active'));
   }
 
@@ -554,107 +516,20 @@
     else showView('home');
   }
 
-  async function handleLogin(event) {
-    event.preventDefault();
-    const email = $('#loginEmail').value.trim();
-    const password = $('#loginPassword').value;
-    try {
-      if (email.toLowerCase().startsWith('admin')) {
-        const admin = await request('/api/admin/login', { method: 'POST', body: JSON.stringify({ username: email, password }) });
-        state.admin = admin.admin;
-        await loadPlatform();
-        renderAll();
-        $('#authModal').classList.add('hidden');
-        $('#adminPanel').classList.remove('hidden');
-        await renderAdminUsers();
-        return;
-      }
-      const data = await request('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
-      state.user = data.user;
-      $('#authModal').classList.add('hidden');
-      renderAll();
-      showView('dashboard');
-    } catch (error) {
-      showMessage('#authMessage', error.message, 'error');
-    }
-  }
-
-  async function handleRegister(event) {
-    event.preventDefault();
-    const password = $('#regPassword').value;
-    if (password !== $('#regConfirm').value) {
-      showMessage('#authMessage', 'Passwords do not match.', 'error');
-      return;
-    }
-    try {
-      const data = await request('/api/auth/register', {
-        method: 'POST',
-        body: JSON.stringify({
-          name: $('#regName').value.trim(),
-          fullName: $('#regName').value.trim(),
-          email: $('#regEmail').value.trim(),
-          mobile: $('#regMobile').value.trim(),
-          password,
-          userType: $('#regUserType').value,
-        }),
-      });
-      state.user = data.user;
-      $('#authModal').classList.add('hidden');
-      renderAll();
-      showView('dashboard');
-    } catch (error) {
-      showMessage('#authMessage', error.message, 'error');
-    }
-  }
-
-  async function handleSocialLogin(provider) {
-    try {
-      let clientId = localStorage.getItem('sansa_social_client_id');
-      if (!clientId) {
-        clientId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-        localStorage.setItem('sansa_social_client_id', clientId);
-      }
-      showMessage('#authMessage', `${provider} sign-in connecting...`, 'success');
-      const data = await request('/api/auth/social', {
-        method: 'POST',
-        body: JSON.stringify({ provider, clientId }),
-      });
-      state.user = data.user;
-      $('#authModal').classList.add('hidden');
-      renderAll();
-      showView('dashboard');
-    } catch (error) {
-      showMessage('#authMessage', error.message || `${provider} sign-in failed.`, 'error');
-    }
-  }
-
-  async function logout() {
-    await request('/api/auth/logout', { method: 'POST' }).catch(() => {});
-    await request('/api/admin/logout', { method: 'POST' }).catch(() => {});
-    state.user = null;
-    state.admin = null;
-    renderAll();
-    showView('home');
-  }
-
   async function checkout(planId) {
     try {
       const data = await request('/api/subscription/checkout', { method: 'POST', body: JSON.stringify({ planId }) });
       const checkout = data.checkout || data;
       const url = checkout.paymentUrl;
       if (url) window.open(url, '_blank', 'noopener');
-      else showMessage('#authMessage', 'Free plan activated.', 'success');
+      else showMessage('#siteNotice', 'Free plan activated.', 'success');
     } catch (error) {
-      showMessage('#authMessage', error.message, 'error');
-      openAuth(state.user ? 'login' : 'register');
+      showMessage('#siteNotice', error.message, 'error');
     }
   }
 
   function bindEvents() {
     document.addEventListener('click', async (event) => {
-      const authButton = event.target.closest('[data-open-auth]');
-      if (authButton) openAuth(authButton.dataset.openAuth);
-
       const routeButton = event.target.closest('[data-route]');
       if (routeButton) showView(routeButton.dataset.route);
 
@@ -687,13 +562,7 @@
       if (checkoutButton) checkout(checkoutButton.dataset.checkout);
 
       const openApp = event.target.closest('[data-open-app]');
-      if (openApp) {
-        if (!state.user) openAuth('login');
-        else showView('dashboard');
-      }
-
-      const social = event.target.closest('[data-social]');
-      if (social) await handleSocialLogin(social.dataset.social);
+      if (openApp) showView('dashboard');
 
       const saveUser = event.target.closest('[data-save-user]');
       if (saveUser) {
@@ -726,24 +595,10 @@
 
     $('#appSwitcherBtn').addEventListener('click', () => {
       $('#appSwitcher').classList.toggle('hidden');
-      $('#profileMenu').classList.add('hidden');
       $('#megaMenu').classList.add('hidden');
     });
-    $('#profileButton').addEventListener('click', () => {
-      $('#profileMenu').classList.toggle('hidden');
-      $('#appSwitcher').classList.add('hidden');
-      $('#megaMenu').classList.add('hidden');
-    });
-    $('#closeAuth').addEventListener('click', () => $('#authModal').classList.add('hidden'));
     $('#closeAdmin').addEventListener('click', () => $('#adminPanel').classList.add('hidden'));
-    $('#loginForm').addEventListener('submit', handleLogin);
-    $('#registerForm').addEventListener('submit', handleRegister);
     document.addEventListener('submit', handleAiSubmit);
-    $('#guestDemoBtn').addEventListener('click', async () => {
-      $('#loginEmail').value = 'demo@sansaai.in';
-      $('#loginPassword').value = 'demo123';
-      $('#loginForm').requestSubmit();
-    });
     $('#saveAdminSettings').addEventListener('click', async () => {
       try {
         const data = await request('/api/admin/settings', {
@@ -766,18 +621,12 @@
       if (event.key === 'Escape') closePopups();
     });
     document.addEventListener('click', (event) => {
-      if (!event.target.closest('.site-header, .mega-menu, .app-switcher, .profile-menu')) closePopups();
-      if (event.target.closest('#logoutBtn')) logout();
-      if (event.target.closest('#openAdminPanel')) {
-        $('#adminPanel').classList.remove('hidden');
-        renderAdminFields();
-        renderAdminUsers().catch((error) => showMessage('#adminStatus', error.message, 'error'));
-      }
+      if (!event.target.closest('.site-header, .mega-menu, .app-switcher')) closePopups();
     });
   }
 
   init().catch((error) => {
     console.error(error);
-    showMessage('#authMessage', 'SANSA platform failed to initialise. Please restart backend app.', 'error');
+    showMessage('#siteNotice', 'SANSA platform failed to initialise. Please restart backend app.', 'error');
   });
 }());
