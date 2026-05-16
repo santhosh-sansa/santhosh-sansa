@@ -1,54 +1,60 @@
 #!/usr/bin/env sh
-# Compare an extracted "Sansa Frontend.zip" tree against this package's public/
-# Works from any current directory — paths are resolved from this script's location.
+# Compare "Sansa Frontend.zip" contents against artifacts/sansa-backend/public/.
+# Paths are resolved from this script's location (any cwd is fine).
+#
+# Zip selection (first match wins):
+#   1) First argument, if it is a readable file
+#   2) SANSA_FRONTEND_ZIP, if set and readable
+#   3) FRONTEND_ZIP, if set and readable
+#   4) <repo root>/Sansa Frontend.zip (repo root = three levels above this script)
 #
 # Usage:
-#   sh /path/to/repo/artifacts/sansa-backend/scripts/compare-sansa-frontend-zip.sh "/path/to/Sansa Frontend.zip"
-# Or from the backend package root:
-#   sh scripts/compare-sansa-frontend-zip.sh "/path/to/Sansa Frontend.zip"
-# Or:
-#   FRONTEND_ZIP="/path/to/Sansa Frontend.zip" sh scripts/compare-sansa-frontend-zip.sh
+#   sh .../compare-sansa-frontend-zip.sh
+#   sh .../compare-sansa-frontend-zip.sh "/path/to/Sansa Frontend.zip"
+#   SANSA_FRONTEND_ZIP="/path/to/Sansa Frontend.zip" sh .../compare-sansa-frontend-zip.sh
 #
-# Requires: unzip, diff (standard on Linux / cPanel hosts).
+# Requires: unzip, diff.
 
 set -eu
 
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname "$0")" && pwd)
 BACKEND_ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
 PUBLIC_DIR="$BACKEND_ROOT/public"
+WORKSPACE=$(CDPATH= cd -- "$SCRIPT_DIR/../../.." && pwd)
+DEFAULT_ZIP="$WORKSPACE/Sansa Frontend.zip"
 
-ZIP_PATH=${1:-${FRONTEND_ZIP:-}}
-
-if [ -z "$ZIP_PATH" ]; then
-  echo "compare-sansa-frontend-zip.sh: missing zip path." >&2
-  echo "" >&2
-  echo "You must run this script from inside a clone of the santhosh-sansa repo" >&2
-  echo "(so that artifacts/sansa-backend/... exists), or pass the full path to the script." >&2
-  echo "" >&2
-  echo "Usage:" >&2
-  echo "  sh /path/to/repo/artifacts/sansa-backend/scripts/compare-sansa-frontend-zip.sh \"/path/to/Sansa Frontend.zip\"" >&2
-  echo "  FRONTEND_ZIP=\"/path/to/Sansa Frontend.zip\" sh .../compare-sansa-frontend-zip.sh" >&2
-  exit 1
-fi
-
-if [ ! -f "$ZIP_PATH" ]; then
-  echo "compare-sansa-frontend-zip.sh: file not found: $ZIP_PATH" >&2
+ZIP_PATH=""
+if [ -n "${1:-}" ]; then
+  if [ ! -f "$1" ]; then
+    echo "compare-sansa-frontend-zip.sh: first argument is not a readable file: $1" >&2
+    exit 1
+  fi
+  ZIP_PATH=$1
+elif [ -n "${SANSA_FRONTEND_ZIP:-}" ] && [ -f "$SANSA_FRONTEND_ZIP" ]; then
+  ZIP_PATH=$SANSA_FRONTEND_ZIP
+elif [ -n "${FRONTEND_ZIP:-}" ] && [ -f "$FRONTEND_ZIP" ]; then
+  ZIP_PATH=$FRONTEND_ZIP
+elif [ -f "$DEFAULT_ZIP" ]; then
+  ZIP_PATH=$DEFAULT_ZIP
+else
+  echo "compare-sansa-frontend-zip.sh: no zip found." >&2
+  echo "Pass a path: sh .../compare-sansa-frontend-zip.sh \"/path/to/Sansa Frontend.zip\"" >&2
+  echo "Or set SANSA_FRONTEND_ZIP / FRONTEND_ZIP, or place Sansa Frontend.zip at: $DEFAULT_ZIP" >&2
   exit 1
 fi
 
 if [ ! -d "$PUBLIC_DIR" ]; then
   echo "compare-sansa-frontend-zip.sh: expected public dir missing: $PUBLIC_DIR" >&2
-  echo "(Run from repo checkout; script lives under artifacts/sansa-backend/scripts/.)" >&2
   exit 1
 fi
 
 if ! command -v unzip >/dev/null 2>&1; then
-  echo "compare-sansa-frontend-zip.sh: 'unzip' not found in PATH." >&2
+  echo "compare-sansa-frontend-zip.sh: unzip not found in PATH." >&2
   exit 1
 fi
 
 if ! command -v diff >/dev/null 2>&1; then
-  echo "compare-sansa-frontend-zip.sh: 'diff' not found in PATH." >&2
+  echo "compare-sansa-frontend-zip.sh: diff not found in PATH." >&2
   exit 1
 fi
 
@@ -58,18 +64,20 @@ cleanup() {
 }
 trap cleanup EXIT
 
-unzip -q -o "$ZIP_PATH" -d "$TMP"
+mkdir -p "$TMP/extract"
+unzip -q -o "$ZIP_PATH" -d "$TMP/extract"
 
-# Prefer a top-level "public/" inside the archive; else use directory of first index.html.
+# Prefer .../public/index.html inside the archive; else top-level index.html; else first index.html.
 ROOT=""
-if [ -f "$TMP/public/index.html" ]; then
-  ROOT="$TMP/public"
+if [ -f "$TMP/extract/public/index.html" ]; then
+  ROOT="$TMP/extract/public"
+elif [ -f "$TMP/extract/index.html" ]; then
+  ROOT="$TMP/extract"
 else
-  INDEX=$(find "$TMP" -name index.html 2>/dev/null | head -n 1)
+  INDEX=$(find "$TMP/extract" -name index.html 2>/dev/null | head -n 1)
   if [ -z "$INDEX" ]; then
-    echo "compare-sansa-frontend-zip.sh: could not find index.html inside zip after extract." >&2
-    echo "Listing top of archive:" >&2
-    ls -la "$TMP" >&2 || true
+    echo "compare-sansa-frontend-zip.sh: could not find index.html inside zip." >&2
+    ls -la "$TMP/extract" >&2 || true
     exit 1
   fi
   ROOT=$(dirname "$INDEX")
@@ -77,8 +85,8 @@ fi
 
 echo "=== Sansa frontend zip compare ==="
 echo "ZIP (resolved): $ZIP_PATH"
-echo "Zip web root: $ROOT"
-echo "Repo public:  $PUBLIC_DIR"
+echo "Zip web root:   $ROOT"
+echo "Repo public:    $PUBLIC_DIR"
 echo ""
 
 set +e
@@ -90,11 +98,11 @@ echo ""
 if [ "$DIFF_STATUS" -eq 0 ]; then
   echo "Result: no differences reported between zip web root and public/."
 else
-  echo "Result: differences found (diff exit $DIFF_STATUS). Update public/ or the zip as needed."
+  echo "Result: differences found (diff exit $DIFF_STATUS)."
 fi
 
 echo ""
-echo "Policy: repo public/ is source of truth. Do not copy api/.htaccess from zip (see repo .gitignore / public/api/README.md)."
-echo "If the zip is older, only add missing static helpers (e.g. .well-known) or docs — never downgrade app.js / index.html / page.html."
+echo "Policy: repo public/ is source of truth. Do not copy api/.htaccess from zip (see root .gitignore / public/api/README.md)."
+echo "If the zip is older, only add missing static helpers (e.g. .well-known) or docs — never downgrade app.js / page.html."
 
 exit "$DIFF_STATUS"
