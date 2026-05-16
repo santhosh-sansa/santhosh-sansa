@@ -76,7 +76,7 @@ else
 fi
 
 echo "=== Sansa frontend zip compare ==="
-echo "Zip:          $ZIP_PATH"
+echo "ZIP (resolved): $ZIP_PATH"
 echo "Zip web root: $ROOT"
 echo "Repo public:  $PUBLIC_DIR"
 echo ""
@@ -92,5 +92,9 @@ if [ "$DIFF_STATUS" -eq 0 ]; then
 else
   echo "Result: differences found (diff exit $DIFF_STATUS). Update public/ or the zip as needed."
 fi
+
+echo ""
+echo "Policy: repo public/ is source of truth. Do not copy api/.htaccess from zip (see repo .gitignore / public/api/README.md)."
+echo "If the zip is older, only add missing static helpers (e.g. .well-known) or docs — never downgrade app.js / index.html / page.html."
 
 exit "$DIFF_STATUS"
