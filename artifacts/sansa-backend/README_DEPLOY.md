@@ -20,6 +20,14 @@ This package is built for MilesWeb/cPanel Node.js with the existing CommonJS sta
 5. Copy `.env.example` to `.env` (or set variables in the Node.js app UI) and fill production values below.
 6. **Restart** the application.
 
+## Go-live checklist (do this before announcing the site)
+
+1. **Secrets** — Set a long random `SESSION_SECRET` (e.g. `openssl rand -base64 48` on your laptop) and a strong `ADMIN_PASSWORD`. Do not leave `REPLACE_*` placeholders from `.env.example`.
+2. **Origins** — `CORS_ORIGINS` and `APP_BASE_URL` must match your real `https://` hostnames.
+3. **Node mode** — `NODE_ENV=production` on MilesWeb so session cookies use the secure cross-subdomain settings.
+4. **Sanity script** — From `artifacts/sansa-backend`, run `npm run check:env` (or `node scripts/check-production-env.cjs` / `sh scripts/verify-from-ssh.sh` then `…/node scripts/check-production-env.cjs`). Optional CI gate: set `SANSA_FAIL_ON_WEAK_PRODUCTION=1` with `NODE_ENV=production` to exit non-zero if defaults are still in use.
+5. **Smoke** — Open `https://sansaai.in/` and hit `/health` on your API host (see **Verify** below).
+
 Local check after `git pull` (from your laptop, if `node` is on your PATH):
 
 ```bash
@@ -57,15 +65,15 @@ If you use the older zip bundles instead of Git:
 
 Use `.env.example` as the reference.
 
-Minimum production values:
+Minimum production values (replace placeholders; do not copy example passwords):
 
 ```text
 NODE_ENV=production
 APP_BASE_URL=https://sansaai.in
 CORS_ORIGINS=https://sansaai.in,https://www.sansaai.in,https://api.sansaai.in
 ADMIN_USERNAME=admin@sansai.in
-ADMIN_PASSWORD=Admin@123
-SESSION_SECRET=change-this-long-random-secret
+ADMIN_PASSWORD=<strong-unique-password>
+SESSION_SECRET=<openssl rand -base64 48 or similar, 32+ chars>
 ```
 
 Optional:
@@ -92,7 +100,7 @@ https://api.sansaai.in/api/apps
 https://api.sansaai.in/api/plans
 ```
 
-Admin login uses the values from `ADMIN_USERNAME` and `ADMIN_PASSWORD`. Default local/cPanel setup also accepts `admin@sansai.in` / `Admin@123` until you change the environment variables. Social login buttons are placeholders until OAuth credentials are configured.
+Admin login uses `ADMIN_USERNAME` / `ADMIN_PASSWORD` from the environment. Until you set strong values, the app may still accept legacy defaults documented in code for older installs — replace them on MilesWeb as soon as possible. Social login buttons are placeholders until OAuth credentials are configured.
 
 Login fix notes:
 
