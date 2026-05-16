@@ -2,7 +2,8 @@
   const config = window.__SANSA_CONFIG__ || window.SANSA_CONFIG || {};
   const API_BASE = String(config.apiBaseUrl || config.apiBase || '').replace(/\/$/, '');
   const apiUrl = (path) => `${API_BASE}${path}`;
-  const hidePublicAuth = Boolean(config.hideAccountUi);
+  const hidePublicAuth = Boolean(config.hideAccountUi)
+    || document.documentElement.classList.contains('sansa-public-site');
   const state = {
     user: null,
     admin: null,
@@ -210,6 +211,9 @@
 
   async function init() {
     bindEvents();
+    if (document.documentElement.classList.contains('sansa-public-site')) {
+      $('#authModal')?.classList.add('hidden');
+    }
     await Promise.allSettled([loadMe(), loadAdmin(), loadPlatform(), loadApps(), loadPlans()]);
     renderAll();
     routeFromHash();
@@ -491,11 +495,12 @@
       $('#profileButton')?.classList.add('hidden');
       return;
     }
-    $('#signinButton').classList.toggle('hidden', Boolean(user));
-    $('#profileButton').classList.toggle('hidden', !user);
+    $('#signinButton')?.classList.toggle('hidden', Boolean(user));
+    $('#profileButton')?.classList.toggle('hidden', !user);
     if (user) {
       const label = String(user.name || user.fullName || user.email || 'SA').trim();
-      $('#profileButton').textContent = label.split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase();
+      const pb = $('#profileButton');
+      if (pb) pb.textContent = label.split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase();
     }
   }
 
@@ -540,7 +545,7 @@
   }
 
   function openAuth(tab = 'login') {
-    if (hidePublicAuth) return;
+    if (hidePublicAuth || document.documentElement.classList.contains('sansa-public-site')) return;
     $('#authModal').classList.remove('hidden');
     switchAuthTab(tab);
     $('#loginEmail')?.focus();
@@ -789,7 +794,7 @@
       $('#profileMenu').classList.add('hidden');
       $('#megaMenu').classList.add('hidden');
     });
-    $('#profileButton').addEventListener('click', () => {
+    $('#profileButton')?.addEventListener('click', () => {
       $('#profileMenu').classList.toggle('hidden');
       $('#appSwitcher').classList.add('hidden');
       $('#megaMenu').classList.add('hidden');
