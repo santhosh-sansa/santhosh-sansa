@@ -21,13 +21,17 @@ function extractUpiId(text) {
 }
 
 function buildUpiUrl({ upiId, businessName, amount, invoiceNumber }) {
-  if (!upiId) return '';
+  const pa = extractUpiId(upiId) || String(upiId || '').trim();
+  if (!pa) return '';
+  const pn = cleanText(businessName, 'SANSA Business').slice(0, 50) || 'SANSA';
+  const am = numberValue(amount).toFixed(2);
+  const tn = `INV ${cleanText(invoiceNumber, 'NA')}`.replace(/\s+/g, ' ').trim().slice(0, 80);
   const params = new URLSearchParams({
-    pa: upiId,
-    pn: businessName || 'SANSA Business',
-    am: numberValue(amount).toFixed(2),
+    pa,
+    pn,
+    am,
     cu: 'INR',
-    tn: `Invoice ${invoiceNumber || ''}`.trim(),
+    tn: tn || 'Payment',
   });
   return `upi://pay?${params.toString()}`;
 }
@@ -130,6 +134,70 @@ async function createRazorpayPaymentLink(payload) {
     throw error;
   }
   return data;
+}
+
+async function createRazorpayOrder(payload = {}, userId = 'guest') {
+  const keyId = process.env.RAZORPAY_KEY_ID;
+  const keySecret = process.env.RAZORPAY_KEY_SECRET;
+  if (!keyId || !keySecret) {
+    const err = new Error('Razorpay keys are not configured on this server.');
+    err.status = 503;
+    throw err;
+  }
+  const amountRupees = numberValue(payload.amount);
+  if (!amountRupees) {
+    const err = new Error('Amount is required.');
+    err.status = 422;
+    throw err;
+  }
+  const amountPaise = Math.max(100, Math.round(amountRupees * 100));
+  const invoiceNumber = cleanText(payload.invoiceNumber, `SANSA-${Date.now()}`);
+  const receipt = cleanText(payload.receipt || invoiceNumber, `rcpt_${Date.now()}`)
+    .replace(/[^a-zA-Z0-9_-]/g, '')
+    .slice(0, 40);
+  const response = await fetch('https://api.razorpay.com/v1/orders', {
+    method: 'POST',
+    headers: {
+      Authorization: `Basic ${Buffer.from(`${keyId}:${keySecret}`).toString('base64')}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      amount: amountPaise,
+      currency: 'INR',
+      receipt: receipt || `rcpt_${Date.now()}`,
+      notes: {
+        invoiceNumber,
+        customerName: cleanText(payload.customerName, 'Customer'),
+      },
+    }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const err = new Error(data.error?.description || 'Razorpay order creation failed.');
+    err.status = response.status >= 400 && response.status < 500 ? response.status : 502;
+    throw err;
+  }
+  const event = await storePaymentEvent({
+    userId,
+    provider: 'razorpay',
+    invoiceNumber,
+    customerName: cleanText(payload.customerName, 'Customer'),
+    amount: amountRupees,
+    status: 'order_created',
+    paymentUrl: '',
+    eventJson: { source: 'create-order', orderId: data.id, currency: data.currency, amountPaise: data.amount },
+  });
+  return {
+    ok: true,
+    orderId: data.id,
+    amount: amountRupees,
+    amountPaise: data.amount,
+    currency: data.currency || 'INR',
+    receipt: data.receipt,
+    keyId,
+    invoiceNumber,
+    event,
+  };
 }
 
 async function createPaymentLink(payload = {}, userId = 'guest') {
@@ -266,6 +334,7 @@ async function paymentSummary(userId = 'guest') {
 module.exports = {
   buildUpiUrl,
   createPaymentLink,
+  createRazorpayOrder,
   verifyRazorpayWebhook,
   recordWebhookPayment,
   storePaymentEvent,
