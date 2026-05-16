@@ -26,7 +26,7 @@ This package is built for MilesWeb/cPanel Node.js with the existing CommonJS sta
 2. **Origins** — `CORS_ORIGINS` and `APP_BASE_URL` must match your real `https://` hostnames.
 3. **Node mode** — `NODE_ENV=production` on MilesWeb so session cookies use the secure cross-subdomain settings.
 4. **Sanity script** — From `artifacts/sansa-backend`, run `npm run check:env` (or `node scripts/check-production-env.cjs` / `sh scripts/verify-from-ssh.sh` then `…/node scripts/check-production-env.cjs`). Optional CI gate: set `SANSA_FAIL_ON_WEAK_PRODUCTION=1` with `NODE_ENV=production` to exit non-zero if defaults are still in use.
-5. **Smoke** — Open `https://sansaai.in/` and hit `/health` on your API host (see **Verify** below). Optional static pages from the Sansa Frontend bundle: `/invoice.html`, `/cfo-dashboard.html`, `/customer-portal.html`.
+5. **Smoke** — Open `https://sansaai.in/` and hit `/health` on your API host (see **Verify** below). Optional static pages from the Sansa Frontend bundle: `/invoice.html`, `/cfo-dashboard.html`, `/customer-portal.html`. **Public mode** (`sansaai.in`): sign-in UI is off; tools use anonymous AI when `APP_BASE_URL` contains `sansaai.in` or `SANSA_PUBLIC_AI=1`. Later, to show **Sign in / Register** again for paid plans, set in the page before `sansa-config.js`: `window.__SANSA_SHOW_ACCOUNT_UI__ = true` (and deploy account flows).
 
 Local check after `git pull` (from your laptop, if `node` is on your PATH):
 

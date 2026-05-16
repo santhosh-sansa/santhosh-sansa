@@ -8,9 +8,16 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=sansa-public-free-2026-v1">
+  <link rel="stylesheet" href="styles.css?v=sansa-public-free-2026-v2">
 </head>
 <body>
+  <script>
+    (function () {
+      var h = (location.hostname || '').replace(/^www\./, '');
+      if (h !== 'sansaai.in') return;
+      document.documentElement.classList.add('sansa-public-site');
+    })();
+  </script>
   <div class="promo-bar" id="promoBar">
     <strong>Launch offer:</strong> Start SANSA Creative Cloud-style workspace with free AI credits.
     <button class="promo-button" data-open-auth="register">Start free</button>
@@ -206,7 +213,27 @@
     </div>
   </footer>
 
+  <script>
+    (function () {
+      var h = (location.hostname || '').replace(/^www\./, '');
+      if (h !== 'sansaai.in') return;
+      var pb = document.querySelector('#promoBar .promo-button');
+      if (pb) {
+        pb.removeAttribute('data-open-auth');
+        pb.setAttribute('data-route', 'apps');
+        pb.textContent = 'Explore apps';
+      }
+      var sb = document.getElementById('signinButton');
+      if (sb) sb.remove();
+      var hero = document.querySelector('#homeView .hero-actions .outline-dark');
+      if (hero) {
+        hero.removeAttribute('data-open-auth');
+        hero.setAttribute('data-route', 'apps');
+        hero.textContent = 'Explore apps';
+      }
+    })();
+  </script>
   <script src="sansa-config.js"></script>
-  <script src="app.js?v=sansa-public-free-2026-v1"></script>
+  <script src="app.js?v=sansa-public-free-2026-v2"></script>
 </body>
 </html>

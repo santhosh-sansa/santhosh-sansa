@@ -841,6 +841,17 @@ body.sansa-hide-public-auth #profileButton {
   display: none !important;
 }
 
+/* sansaai.in: block auth shell even before / between JS bundles (cache-safe) */
+html.sansa-public-site #authModal {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+html.sansa-public-site #profileButton {
+  display: none !important;
+}
+
 .site-notice {
   position: fixed;
   bottom: 1.25rem;
