@@ -2,8 +2,6 @@
   const config = window.__SANSA_CONFIG__ || window.SANSA_CONFIG || {};
   const API_BASE = String(config.apiBaseUrl || config.apiBase || '').replace(/\/$/, '');
   const apiUrl = (path) => `${API_BASE}${path}`;
-  const hidePublicAuth = Boolean(config.hideAccountUi)
-    || document.documentElement.classList.contains('sansa-public-site');
   const state = {
     user: null,
     admin: null,
@@ -23,10 +21,6 @@
     video: 'Video',
     illustration: 'Illustration',
     '3d-ar': '3D & AR',
-    business: 'Business',
-    hrms: 'HRMS',
-    payments: 'Payments',
-    assistant: 'AI Assistant',
     'cc-services': 'CC Services',
   };
 
@@ -159,24 +153,6 @@
     },
   ];
 
-  const appToolMap = {
-    'creative-studio': 'image',
-    'firefly-generator': 'image',
-    express: 'assistant',
-    'image-studio': 'photo',
-    'video-studio': 'video',
-    'pdf-studio': 'assistant',
-    'acrobat-pro': 'assistant',
-    stock: 'image',
-    illustrator: 'image',
-    lightroom: 'photo',
-    'substance-3d': 'image',
-    hrms: 'assistant',
-    'business-os': 'assistant',
-    assistant: 'assistant',
-    payments: 'assistant',
-  };
-
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => Array.from(document.querySelectorAll(selector));
   const h = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
@@ -211,17 +187,18 @@
 
   async function init() {
     bindEvents();
-    if (document.documentElement.classList.contains('sansa-public-site')) {
-      $('#authModal')?.classList.add('hidden');
-    }
     await Promise.allSettled([loadMe(), loadAdmin(), loadPlatform(), loadApps(), loadPlans()]);
     renderAll();
     routeFromHash();
   }
 
   async function loadMe() {
-    const data = await request('/api/auth/me');
-    state.user = data.user || null;
+    try {
+      const data = await request('/api/auth/me');
+      state.user = data.user || null;
+    } catch {
+      state.user = null;
+    }
   }
 
   async function loadAdmin() {
@@ -258,10 +235,7 @@
     renderPricingTabs();
     renderPricing();
     renderSwitcher();
-    renderProfile();
     renderWorkspace();
-    renderHeroActions();
-    renderAuthState();
     if (state.admin) renderAdminFields();
   }
 
@@ -269,11 +243,7 @@
     const settings = state.settings || {};
     const promo = settings.promo || {};
     const hero = settings.hero || {};
-    if (hidePublicAuth) {
-      $('#promoBar').innerHTML = `<strong>${h(promo.label || 'SANSA public mode:')}</strong> ${h(promo.text || 'Creative, PDF and AI tools are free to use in your browser — no sign-in required.')} <button type="button" class="promo-button" data-route="apps">${h('Explore apps')}</button>`;
-    } else {
-      $('#promoBar').innerHTML = `<strong>${h(promo.label || 'Launch offer:')}</strong> ${h(promo.text || 'Start SANSA Creative Cloud-style workspace with free AI credits.')} <button class="promo-button" data-open-auth="register">${h(promo.cta || 'Start free')}</button>`;
-    }
+    $('#promoBar').innerHTML = `<strong>${h(promo.label || 'Launch offer:')}</strong> ${h(promo.text || 'Start SANSA Creative Cloud-style workspace with free AI credits.')} <button class="promo-button" data-route="apps">${h(promo.cta || 'Explore apps')}</button>`;
     $('#heroTitle').textContent = hero.title || 'Create something new with SANSA AI.';
     $('#heroSubtitle').textContent = hero.subtitle || 'Design visuals, edit PDFs, automate HR, manage payments and run AI workflows in one SANSA workspace.';
   }
@@ -358,22 +328,6 @@
     `;
   }
 
-  function renderProfile() {
-    const user = state.user;
-    if (!user) return;
-    $('#profileMenu').innerHTML = `
-      <div class="profile-card">
-        <h3>${h(user.name || user.fullName || 'SANSA User')}</h3>
-        <p>${h(user.email || '')}</p>
-        <small>${h(user.plan || user.planId || 'Free')} plan / ${h(user.credits ?? 0)} credits</small>
-        <a href="#dashboard">Manage account</a>
-      </div>
-      <a href="#pricing">View all plans</a>
-      ${state.admin ? '<button type="button" id="openAdminPanel">Admin control</button>' : ''}
-      <button type="button" id="logoutBtn">Sign out</button>
-    `;
-  }
-
   function renderWorkspace() {
     const cards = (state.apps || []).slice(0, 6);
     $('#workspaceCards').innerHTML = cards.map((app) => `
@@ -420,15 +374,17 @@
     } else if (data.soundUrl || data.musicUrl) {
       result.innerHTML = `<strong>Audio ready</strong><audio controls src="${h(data.soundUrl || data.musicUrl)}"></audio>`;
     } else {
-      result.innerHTML = `<strong>Output</strong><p class="tool-output-text">${h(data.reply || data.translatedSubtitles || data.message || 'Completed')}</p>`;
+      result.innerHTML = `<strong>Output</strong><p>${h(data.reply || data.translatedSubtitles || data.message || 'Completed')}</p>`;
     }
   }
 
   async function loadAiHistory() {
-    if (!state.user || !$('#aiHistory')) return;
-    const data = await request('/api/ai/history');
-    const history = data.history || [];
-    $('#aiHistory').innerHTML = `
+    const host = $('#aiHistory');
+    if (!host) return;
+    try {
+      const data = await request('/api/ai/history');
+      const history = data.history || [];
+      host.innerHTML = `
       <h3>Recent AI outputs</h3>
       ${history.length ? history.slice(0, 6).map((item) => `
         <div class="history-row">
@@ -437,16 +393,15 @@
         </div>
       `).join('') : '<p>No AI outputs yet.</p>'}
     `;
+    } catch {
+      host.innerHTML = '<h3>Recent AI outputs</h3><p>No history available.</p>';
+    }
   }
 
   async function handleAiSubmit(event) {
     const form = event.target.closest('[data-ai-form]');
     if (!form) return;
     event.preventDefault();
-    if (!state.user && !hidePublicAuth) {
-      openAuth('login');
-      return;
-    }
     const tool = aiTools.find((item) => item.id === form.dataset.aiForm);
     if (!tool) return;
     const button = form.querySelector('button[type="submit"]');
@@ -465,9 +420,8 @@
       const res = await fetch(apiUrl(tool.endpoint), options);
       const data = await res.json().catch(() => ({}));
       if (!res.ok || data.ok === false || data.success === false) throw new Error(data.error || data.message || 'Tool failed.');
-      if (data.remainingCredits !== undefined && state.user) state.user.credits = data.remainingCredits;
+      if (state.user && data.remainingCredits !== undefined) state.user.credits = data.remainingCredits;
       renderAiResult(tool.id, data);
-      renderProfile();
       await loadAiHistory();
     } catch (error) {
       renderAiResult(tool.id, { message: error.message });
@@ -477,30 +431,85 @@
     }
   }
 
-  function renderHeroActions() {
-    const ha = document.querySelector('#homeView .hero-actions');
-    if (!ha) return;
-    if (hidePublicAuth) {
-      ha.innerHTML = '<button class="outline-dark" type="button" data-route="apps">Explore apps</button><button class="primary-button" type="button" data-route="pricing">View plans</button>';
-    } else {
-      ha.innerHTML = '<button class="outline-dark" type="button" data-open-auth="register">Free trial</button><button class="primary-button" type="button" data-route="pricing">Save today</button>';
-    }
-  }
+  const toolFormEndpoints = {
+    'text-to-pdf': { method: 'POST', endpoint: '/api/tools/text-to-pdf', json: true },
+    'pdf-to-text': { method: 'POST', endpoint: '/api/tools/pdf-to-text', file: true },
+    'merge-pdf': { method: 'POST', endpoint: '/api/tools/document-workflow', json: true, extraBody: { action: 'merge' } },
+    'compress-pdf': { method: 'POST', endpoint: '/api/tools/document-workflow', json: true, extraBody: { action: 'compress' } },
+    'chat-pdf': { method: 'POST', endpoint: '/api/tools/pdf-workflow', file: true },
+    'esign-pdf': { method: 'POST', endpoint: '/api/tools/text-to-pdf', json: true },
+    'gen-image': { method: 'POST', endpoint: '/api/creative/image', json: true },
+    'enhance-photo': { method: 'POST', endpoint: '/api/creative/photo-edit', file: true },
+    'remove-bg': { method: 'POST', endpoint: '/api/creative/photo-edit', file: true, extraBody: { effect: 'background-ready' } },
+    'resize-image': { method: 'POST', endpoint: '/api/creative/photo-edit', file: true },
+    'edit-video': { method: 'POST', endpoint: '/api/creative/video', file: true },
+    'translate-video': { method: 'POST', endpoint: '/api/creative/translate', json: true },
+    'storyboard': { method: 'POST', endpoint: '/api/ai/assistant', json: true },
+    'gen-sound': { method: 'POST', endpoint: '/api/creative/sound', json: true },
+    'gen-music': { method: 'POST', endpoint: '/api/creative/music', json: true },
+    'poster': { method: 'POST', endpoint: '/api/creative/image', json: true },
+    'logo': { method: 'POST', endpoint: '/api/creative/image', json: true },
+    'social-template': { method: 'POST', endpoint: '/api/creative/image', json: true },
+    'business-card': { method: 'POST', endpoint: '/api/creative/image', json: true },
+    'quick-design': { method: 'POST', endpoint: '/api/creative/image', json: true },
+    'quick-video': { method: 'POST', endpoint: '/api/ai/assistant', json: true },
+    'quick-pdf': { method: 'POST', endpoint: '/api/tools/text-to-pdf', json: true },
+    'qr-code': { method: 'POST', endpoint: '/api/services/draft', json: true },
+    'add-employee': { method: 'POST', endpoint: '/api/services/draft', json: true, extraBody: { type: 'hr-employee' } },
+    'attendance': { method: 'POST', endpoint: '/api/services/draft', json: true, extraBody: { type: 'hr-attendance' } },
+    'leave-request': { method: 'POST', endpoint: '/api/services/draft', json: true, extraBody: { type: 'hr-leave' } },
+    'payroll': { method: 'POST', endpoint: '/api/services/draft', json: true, extraBody: { type: 'hr-payroll' } },
+    'offer-letter': { method: 'POST', endpoint: '/api/services/draft', json: true, extraBody: { type: 'hr-offer' } },
+    'hr-assistant': { method: 'POST', endpoint: '/api/ai/assistant', json: true },
+    'create-invoice': { method: 'POST', endpoint: '/api/payments/create-link', json: true },
+    'payment-link': { method: 'POST', endpoint: '/api/payments/create-link', json: true },
+    'gst-report': { method: 'POST', endpoint: '/api/services/draft', json: true, extraBody: { type: 'gst-report' } },
+    'cfo-dashboard': { method: 'POST', endpoint: '/api/services/draft', json: true, extraBody: { type: 'cfo-dashboard' } },
+    'customer-ledger': { method: 'POST', endpoint: '/api/services/draft', json: true, extraBody: { type: 'customer-ledger' } },
+  };
 
-  function renderAuthState() {
-    document.body.classList.toggle('sansa-hide-public-auth', hidePublicAuth);
-    const user = state.user;
-    if (hidePublicAuth) {
-      $('#signinButton')?.classList.add('hidden');
-      $('#profileButton')?.classList.add('hidden');
-      return;
-    }
-    $('#signinButton')?.classList.toggle('hidden', Boolean(user));
-    $('#profileButton')?.classList.toggle('hidden', !user);
-    if (user) {
-      const label = String(user.name || user.fullName || user.email || 'SA').trim();
-      const pb = $('#profileButton');
-      if (pb) pb.textContent = label.split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase();
+  async function handleToolSubmit(event) {
+    const form = event.target.closest('[data-tool-form]');
+    if (!form) return;
+    event.preventDefault();
+    const toolId = form.dataset.toolForm;
+    const config = toolFormEndpoints[toolId];
+    if (!config) return;
+    const button = form.querySelector('button[type="submit"]');
+    const prev = button.textContent;
+    button.textContent = 'Processing...';
+    button.disabled = true;
+    const outputEl = $(`#output-${CSS.escape(toolId)}`);
+    try {
+      const formData = new FormData(form);
+      const options = { method: config.method, credentials: 'include' };
+      if (config.file) {
+        if (config.extraBody) Object.entries(config.extraBody).forEach(([k, v]) => formData.append(k, v));
+        options.body = formData;
+      } else {
+        options.headers = { 'Content-Type': 'application/json' };
+        const body = Object.fromEntries(formData.entries());
+        if (config.extraBody) Object.assign(body, config.extraBody);
+        options.body = JSON.stringify(body);
+      }
+      const res = await fetch(apiUrl(config.endpoint), options);
+      const data = await res.json().catch(() => ({}));
+      if (outputEl) {
+        outputEl.classList.remove('hidden');
+        if (data.imageUrl) outputEl.innerHTML = `<strong>✅ Generated</strong><img src="${h(data.imageUrl)}" alt="Output">`;
+        else if (data.videoUrl) outputEl.innerHTML = `<strong>✅ Video ready</strong><video controls src="${h(data.videoUrl)}"></video>`;
+        else if (data.soundUrl || data.musicUrl) outputEl.innerHTML = `<strong>✅ Audio ready</strong><audio controls src="${h(data.soundUrl || data.musicUrl)}"></audio>`;
+        else if (data.text) outputEl.innerHTML = `<strong>✅ Output</strong>\n${h(data.text)}`;
+        else if (data.reply) outputEl.innerHTML = `<strong>✅ AI Response</strong>\n${h(data.reply)}`;
+        else if (data.draft) outputEl.innerHTML = `<strong>✅ Draft</strong>\n${h(typeof data.draft === 'string' ? data.draft : JSON.stringify(data.draft, null, 2))}`;
+        else if (data.ok || data.success) outputEl.innerHTML = `<strong>✅ Success</strong>\n${h(data.message || JSON.stringify(data, null, 2))}`;
+        else outputEl.innerHTML = `<strong>⚠️ Response</strong>\n${h(data.error || data.message || JSON.stringify(data, null, 2))}`;
+      }
+    } catch (error) {
+      if (outputEl) { outputEl.classList.remove('hidden'); outputEl.innerHTML = `<strong>❌ Error</strong>\n${h(error.message)}`; }
+    } finally {
+      button.textContent = prev;
+      button.disabled = false;
     }
   }
 
@@ -544,24 +553,9 @@
     `;
   }
 
-  function openAuth(tab = 'login') {
-    if (hidePublicAuth || document.documentElement.classList.contains('sansa-public-site')) return;
-    $('#authModal').classList.remove('hidden');
-    switchAuthTab(tab);
-    $('#loginEmail')?.focus();
-  }
-
-  function switchAuthTab(tab) {
-    const isLogin = tab === 'login';
-    $$('[data-auth-tab]').forEach((button) => button.classList.toggle('active', button.dataset.authTab === tab));
-    $('#loginForm').classList.toggle('hidden', !isLogin);
-    $('#registerForm').classList.toggle('hidden', isLogin);
-  }
-
   function closePopups() {
     $('#megaMenu').classList.add('hidden');
     $('#appSwitcher').classList.add('hidden');
-    $('#profileMenu').classList.add('hidden');
     $$('.nav-link').forEach((button) => button.classList.remove('active'));
   }
 
@@ -571,10 +565,31 @@
     const menu = $('#megaMenu');
     menu.innerHTML = `
       <div class="mega-inner">
-        ${data.columns.map(([heading, items]) => `
+          ${data.columns.map(([heading, items]) => `
           <div class="mega-column">
             <h3>${h(heading)}</h3>
-            ${items.map((item) => `<a class="mega-link" href="#apps">${h(item)}<small>${h(data.title)}</small></a>`).join('')}
+            ${items.map((item) => {
+              const itemKey = item.toLowerCase().replace(/\s+/g, '-').replace(/^sansa-/, '');
+              const megaRoutes = {
+                'image-studio': 'image-studio', 'video-studio': 'video-studio', 'express': 'express',
+                'vector-designer': 'creative-studio', 'stock': 'dashboard', 'firefly': 'firefly',
+                'pdf-studio': 'pdf-studio', 'acrobat-pro-tools': 'pdf-studio', 'ai-assistant-for-pdf': 'pdf-studio',
+                'e-signature': 'pdf-studio', 'pdf-reader': 'pdf-studio',
+                'edit-pdf': 'pdf-studio', 'chat-with-pdf': 'pdf-studio', 'pdf-to-word': 'pdf-studio',
+                'compress-pdf': 'pdf-studio', 'merge-pdf': 'pdf-studio',
+                'ai-image-generator': 'image-studio', 'ai-video-editor': 'video-studio',
+                'ai-photo-editing': 'image-studio', 'ai-translation': 'firefly', 'ai-music-generator': 'firefly',
+                'brand-intelligence': 'invoice', 'engagement-intelligence': 'invoice',
+                'content-marketing': 'creative-studio', 'campaign-automation': 'invoice',
+                'business-os': 'invoice', 'analytics': 'invoice', 'payments': 'invoice', 'customer-portal': 'invoice',
+                'employee-records': 'hrms', 'attendance': 'hrms', 'leave-management': 'hrms',
+                'payroll-ready-data': 'hrms', 'offer-letters': 'hrms', 'document-requests': 'hrms',
+                'ai-hr-assistant': 'hrms', 'approval-flows': 'hrms',
+                'team-dashboard': 'hrms', 'compliance-reminders': 'hrms', 'hiring-pipeline': 'hrms', 'reports': 'hrms',
+              };
+              const route = megaRoutes[itemKey] || 'apps';
+              return `<a class="mega-link" href="#${route}" data-route="${route}">${h(item)}<small>${h(data.title)}</small></a>`;
+            }).join('')}
           </div>
         `).join('')}
         <div class="mega-promo">
@@ -587,139 +602,91 @@
     menu.classList.remove('hidden');
   }
 
+  const toolViews = ['pdf-studio','image-studio','video-studio','creative-studio','firefly','hrms','invoice','express'];
+  const toolViewIds = {
+    'pdf-studio': 'pdfStudioView',
+    'image-studio': 'imageStudioView',
+    'video-studio': 'videoStudioView',
+    'creative-studio': 'creativeStudioView',
+    'firefly': 'fireflyView',
+    'hrms': 'hrmsView',
+    'invoice': 'invoiceView',
+    'express': 'expressView',
+  };
+
+  const appRouteMap = {
+    'sansa-pdf-studio': 'pdf-studio', 'pdf-studio': 'pdf-studio', 'pdf': 'pdf-studio',
+    'sansa-image-studio': 'image-studio', 'image-studio': 'image-studio', 'photoshop': 'image-studio',
+    'sansa-video-studio': 'video-studio', 'video-studio': 'video-studio', 'premiere': 'video-studio',
+    'sansa-creative-studio': 'creative-studio', 'creative-studio': 'creative-studio',
+    'sansa-firefly-generator': 'firefly', 'firefly': 'firefly', 'sansa-firefly': 'firefly',
+    'sansa-express': 'express', 'express': 'express',
+    'sansa-hrms': 'hrms', 'hrms': 'hrms', 'sansa-hr': 'hrms',
+    'sansa-invoice': 'invoice', 'invoice': 'invoice', 'business': 'invoice', 'sansa-business-os': 'invoice',
+    'sansa-skill-hub': 'pdf-studio',
+  };
+
   function showView(view) {
     const isDashboard = view === 'dashboard';
+    const isToolView = toolViews.includes(view);
     $('#homeView').classList.toggle('hidden', view !== 'home');
     $('#storyGrid').classList.toggle('hidden', view !== 'home');
     $('#appsView').classList.toggle('hidden', view !== 'home' && view !== 'apps');
     $('#pricingView').classList.toggle('hidden', view !== 'pricing');
     $('#dashboardView').classList.toggle('hidden', !isDashboard);
+    toolViews.forEach((tv) => {
+      const el = $(`#${toolViewIds[tv]}`);
+      if (el) el.classList.toggle('hidden', view !== tv);
+    });
+    if (isToolView && view === 'firefly') renderFireflyTools();
     window.location.hash = view === 'home' ? '#home' : `#${view}`;
     closePopups();
-  }
-
-  function openDashboardTool(appId) {
-    showView('dashboard');
-    window.requestAnimationFrame(() => {
-      const toolId = appToolMap[appId] || 'assistant';
-      const form = document.querySelector(`[data-ai-form="${CSS.escape(toolId)}"]`);
-      const card = form?.closest('.ai-tool-card') || $('#aiToolsGrid');
-      card?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      form?.querySelector('textarea, input, select')?.focus();
-    });
+    window.scrollTo(0, 0);
   }
 
   function routeFromHash() {
     const view = window.location.hash.replace('#', '') || 'home';
-    if (view === 'pricing' || view === 'apps' || view === 'dashboard') showView(view);
+    if (['pricing', 'apps', 'dashboard'].includes(view) || toolViews.includes(view)) showView(view);
     else showView('home');
   }
 
-  async function handleLogin(event) {
-    event.preventDefault();
-    const email = $('#loginEmail').value.trim();
-    const password = $('#loginPassword').value;
-    try {
-      if (email.toLowerCase().startsWith('admin')) {
-        const admin = await request('/api/admin/login', { method: 'POST', body: JSON.stringify({ username: email, password }) });
-        state.admin = admin.admin;
-        await loadPlatform();
-        renderAll();
-        $('#authModal').classList.add('hidden');
-        $('#adminPanel').classList.remove('hidden');
-        await renderAdminUsers();
-        return;
-      }
-      const data = await request('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
-      state.user = data.user;
-      $('#authModal').classList.add('hidden');
-      renderAll();
-      showView('dashboard');
-    } catch (error) {
-      showMessage('#authMessage', error.message, 'error');
-    }
-  }
-
-  async function handleRegister(event) {
-    event.preventDefault();
-    const password = $('#regPassword').value;
-    if (password !== $('#regConfirm').value) {
-      showMessage('#authMessage', 'Passwords do not match.', 'error');
-      return;
-    }
-    try {
-      const data = await request('/api/auth/register', {
-        method: 'POST',
-        body: JSON.stringify({
-          name: $('#regName').value.trim(),
-          fullName: $('#regName').value.trim(),
-          email: $('#regEmail').value.trim(),
-          mobile: $('#regMobile').value.trim(),
-          password,
-          userType: $('#regUserType').value,
-        }),
-      });
-      state.user = data.user;
-      $('#authModal').classList.add('hidden');
-      renderAll();
-      showView('dashboard');
-    } catch (error) {
-      showMessage('#authMessage', error.message, 'error');
-    }
-  }
-
-  async function handleSocialLogin(provider) {
-    try {
-      let clientId = localStorage.getItem('sansa_social_client_id');
-      if (!clientId) {
-        clientId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-        localStorage.setItem('sansa_social_client_id', clientId);
-      }
-      showMessage('#authMessage', `${provider} sign-in connecting...`, 'success');
-      const data = await request('/api/auth/social', {
-        method: 'POST',
-        body: JSON.stringify({ provider, clientId }),
-      });
-      state.user = data.user;
-      $('#authModal').classList.add('hidden');
-      renderAll();
-      showView('dashboard');
-    } catch (error) {
-      showMessage('#authMessage', error.message || `${provider} sign-in failed.`, 'error');
-    }
-  }
-
-  async function logout() {
-    await request('/api/auth/logout', { method: 'POST' }).catch(() => {});
-    await request('/api/admin/logout', { method: 'POST' }).catch(() => {});
-    state.user = null;
-    state.admin = null;
-    renderAll();
-    showView('home');
+  function renderFireflyTools() {
+    const container = $('#fireflyToolsGrid');
+    if (!container || container.dataset.rendered) return;
+    container.dataset.rendered = '1';
+    container.innerHTML = aiTools.map((tool) => `
+      <div class="tool-card">
+        <i class="tool-emoji">${{ image:'🎨', video:'🎬', photo:'✨', translate:'🌐', sound:'🔊', music:'🎵', assistant:'🤖' }[tool.id] || '⚡'}</i>
+        <h3>${h(tool.name)}</h3>
+        <p>${h(tool.desc)}</p>
+        <form data-ai-form="${h(tool.id)}">
+          ${tool.fields.map((field) => {
+            if (field.type === 'textarea') return '<textarea name="' + h(field.name) + '" placeholder="' + h(field.placeholder || '') + '" rows="3" required></textarea>';
+            if (field.type === 'select') return '<select name="' + h(field.name) + '">' + field.options.map((o) => '<option value="' + h(o) + '">' + h(o) + '</option>').join('') + '</select>';
+            if (field.type === 'file') return '<input type="file" name="' + h(field.name) + '" accept="' + h(field.accept || '*') + '" required>';
+            return '<input type="' + h(field.type || 'text') + '" name="' + h(field.name) + '" placeholder="' + h(field.placeholder || '') + '">';
+          }).join('')}
+          <button class="primary-button full" type="submit">Run tool</button>
+        </form>
+        <div class="tool-result hidden" id="result-${h(tool.id)}"></div>
+      </div>
+    `).join('');
   }
 
   async function checkout(planId) {
-    if (hidePublicAuth) {
-      showMessage('#siteNotice', 'Public free mode: open any app below and run tools without checkout.', 'success');
-      return;
-    }
     try {
       const data = await request('/api/subscription/checkout', { method: 'POST', body: JSON.stringify({ planId }) });
       const checkout = data.checkout || data;
       const url = checkout.paymentUrl;
       if (url) window.open(url, '_blank', 'noopener');
-      else showMessage('#authMessage', 'Free plan activated.', 'success');
+      else showMessage('#siteNotice', 'Free plan activated.', 'success');
     } catch (error) {
-      showMessage('#authMessage', error.message, 'error');
-      openAuth(state.user ? 'login' : 'register');
+      showMessage('#siteNotice', error.message, 'error');
     }
   }
 
   function bindEvents() {
     document.addEventListener('click', async (event) => {
-      const authButton = event.target.closest('[data-open-auth]');
-      if (authButton && !hidePublicAuth) openAuth(authButton.dataset.openAuth);
-
       const routeButton = event.target.closest('[data-route]');
       if (routeButton) showView(routeButton.dataset.route);
 
@@ -753,12 +720,11 @@
 
       const openApp = event.target.closest('[data-open-app]');
       if (openApp) {
-        if (!state.user && !hidePublicAuth) openAuth('login');
-        else openDashboardTool(openApp.dataset.openApp);
+        const appId = String(openApp.dataset.openApp || '').toLowerCase().replace(/\s+/g, '-');
+        const route = appRouteMap[appId];
+        if (route) showView(route);
+        else showView('dashboard');
       }
-
-      const social = event.target.closest('[data-social]');
-      if (social) await handleSocialLogin(social.dataset.social);
 
       const saveUser = event.target.closest('[data-save-user]');
       if (saveUser) {
@@ -791,24 +757,11 @@
 
     $('#appSwitcherBtn').addEventListener('click', () => {
       $('#appSwitcher').classList.toggle('hidden');
-      $('#profileMenu').classList.add('hidden');
       $('#megaMenu').classList.add('hidden');
     });
-    $('#profileButton')?.addEventListener('click', () => {
-      $('#profileMenu').classList.toggle('hidden');
-      $('#appSwitcher').classList.add('hidden');
-      $('#megaMenu').classList.add('hidden');
-    });
-    $('#closeAuth').addEventListener('click', () => $('#authModal').classList.add('hidden'));
     $('#closeAdmin').addEventListener('click', () => $('#adminPanel').classList.add('hidden'));
-    $('#loginForm').addEventListener('submit', handleLogin);
-    $('#registerForm').addEventListener('submit', handleRegister);
     document.addEventListener('submit', handleAiSubmit);
-    $('#guestDemoBtn').addEventListener('click', async () => {
-      $('#loginEmail').value = 'demo@sansaai.in';
-      $('#loginPassword').value = 'demo123';
-      $('#loginForm').requestSubmit();
-    });
+    document.addEventListener('submit', handleToolSubmit);
     $('#saveAdminSettings').addEventListener('click', async () => {
       try {
         const data = await request('/api/admin/settings', {
@@ -831,18 +784,12 @@
       if (event.key === 'Escape') closePopups();
     });
     document.addEventListener('click', (event) => {
-      if (!event.target.closest('.site-header, .mega-menu, .app-switcher, .profile-menu')) closePopups();
-      if (event.target.closest('#logoutBtn')) logout();
-      if (event.target.closest('#openAdminPanel')) {
-        $('#adminPanel').classList.remove('hidden');
-        renderAdminFields();
-        renderAdminUsers().catch((error) => showMessage('#adminStatus', error.message, 'error'));
-      }
+      if (!event.target.closest('.site-header, .mega-menu, .app-switcher')) closePopups();
     });
   }
 
   init().catch((error) => {
     console.error(error);
-    showMessage(hidePublicAuth ? '#siteNotice' : '#authMessage', 'SANSA platform failed to initialise. Please restart backend app.', 'error');
+    showMessage('#siteNotice', 'SANSA platform failed to initialise. Please restart backend app.', 'error');
   });
 }());
