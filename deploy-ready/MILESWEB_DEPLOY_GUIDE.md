@@ -169,3 +169,17 @@ Make sure these directories are writable:
 - `tmp/` — for temporary files
 
 In cPanel Terminal: `chmod 755 uploads data tmp`
+
+---
+
+## Post-deploy checklists (operations)
+
+After the app is live, use these **in order**:
+
+| Step | Document |
+|------|----------|
+| 1 — Stabilize (week 1) | `deploy-ready/STABILIZE_WEEK1_CHECKLIST.md` |
+| 2 — Backup & recovery | `deploy-ready/BACKUP_AND_RECOVERY_CHECKLIST.md` |
+| 3 — Secrets & env | `deploy-ready/SECRETS_AND_ENV_CHECKLIST.md` |
+
+If a checklist file is missing locally, run `git pull origin main` after it is merged on GitHub.
