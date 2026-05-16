@@ -174,7 +174,7 @@ In cPanel Terminal: `chmod 755 uploads data tmp`
 
 ## Post-deploy checklists (operations)
 
-After the app is live, use these **in order** (Step 5: fill runbook and share with team).
+After the app is live, use these **in order**:
 
 | Step | Document |
 |------|----------|
