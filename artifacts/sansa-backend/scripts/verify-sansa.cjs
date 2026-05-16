@@ -21,7 +21,7 @@ function walkJs(dir, acc) {
 
 const files = [path.join(root, 'index.cjs')];
 walkJs(path.join(root, 'src'), files);
-for (const name of ['app.js', 'page-shell.js', 'admin-test.js', 'sw.js']) {
+for (const name of ['app.js', 'page-shell.js', 'page-workspace-mvp.js', 'admin-test.js', 'sw.js']) {
   const p = path.join(root, 'public', name);
   if (fs.existsSync(p)) files.push(p);
 }

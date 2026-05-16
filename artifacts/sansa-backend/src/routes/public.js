@@ -92,10 +92,23 @@ const {
   buildAssistantReply,
 } = require('../services/creativeSuite');
 const { extractiveSummary, chatFromDocument, truncateForStudio } = require('../services/pdfStudio');
+const { mergePdfBuffers, splitPdfBuffer } = require('../services/pdfPages');
+const {
+  listEmployees,
+  addEmployee,
+  deleteEmployee,
+  listAttendance,
+  addAttendance,
+} = require('../services/hrmsJson');
 
 const router = express.Router();
 const toolUpload = multer({
   dest: path.join(__dirname, '..', '..', 'uploads'),
+  limits: { fileSize: 15 * 1024 * 1024 },
+});
+
+const memoryUpload = multer({
+  storage: multer.memoryStorage(),
   limits: { fileSize: 15 * 1024 * 1024 },
 });
 
@@ -615,6 +628,14 @@ router.post('/subscription/checkout', async (req, res) => {
   }
 });
 
+router.get('/payments/config', (req, res) => {
+  res.json({
+    ok: true,
+    defaultUpi: String(process.env.SANSA_UPI_ID || '').trim(),
+    razorpayReady: Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET),
+  });
+});
+
 router.post('/payments/create-link', async (req, res) => {
   try {
     const userId = req.session?.sansaUser?.id || 'guest';
@@ -674,6 +695,49 @@ router.post('/payments/webhook/razorpay', async (req, res) => {
     subscription = await activateSubscriptionByInvoice(event.invoiceNumber, req.body || {});
   }
   return res.json({ ok: true, verified: !verified.skipped, event, subscription });
+});
+
+router.get('/hrms/employees', async (req, res, next) => {
+  try {
+    res.json({ ok: true, employees: await listEmployees() });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/hrms/employees', async (req, res, next) => {
+  try {
+    const row = await addEmployee(req.body || {});
+    res.json({ ok: true, employee: row });
+  } catch (error) {
+    res.status(error.status || 500).json({ ok: false, error: error.message || 'Failed to add employee.' });
+  }
+});
+
+router.delete('/hrms/employees/:id', async (req, res, next) => {
+  try {
+    await deleteEmployee(req.params.id);
+    res.json({ ok: true });
+  } catch (error) {
+    res.status(error.status || 500).json({ ok: false, error: error.message || 'Failed to delete employee.' });
+  }
+});
+
+router.get('/hrms/attendance', async (req, res, next) => {
+  try {
+    res.json({ ok: true, rows: await listAttendance() });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/hrms/attendance', async (req, res, next) => {
+  try {
+    const row = await addAttendance(req.body || {});
+    res.json({ ok: true, row });
+  } catch (error) {
+    res.status(error.status || 500).json({ ok: false, error: error.message || 'Failed to record attendance.' });
+  }
 });
 
 router.post('/creative/image', async (req, res, next) => {
@@ -1705,6 +1769,40 @@ router.post('/tools/pdf-to-text', toolUpload.single('pdf'), async (req, res, nex
       ok: false,
       error: 'PDF to Text failed. Install Python dependencies with PyPDF2 or set PYTHON_BIN correctly.',
     });
+  }
+});
+
+router.post('/tools/pdf-merge', memoryUpload.array('pdfs', 20), async (req, res, next) => {
+  try {
+    if (!req.files || req.files.length < 2) {
+      return res.status(400).json({ ok: false, error: 'Upload at least 2 PDF files using field name pdfs.' });
+    }
+    const buffers = req.files.map((f) => f.buffer);
+    const out = await mergePdfBuffers(buffers);
+    const userId = req.session?.sansaUser?.id || 'guest';
+    await recordAuditEvent(userId, 'pdf_merge', { files: req.files.length });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename="sansa-merge.pdf"');
+    return res.send(out);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/tools/pdf-split', memoryUpload.single('pdf'), async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ ok: false, error: 'Upload one PDF as field pdf.' });
+    }
+    const pageSpec = String(req.body?.pages || '0').trim();
+    const out = await splitPdfBuffer(req.file.buffer, pageSpec);
+    const userId = req.session?.sansaUser?.id || 'guest';
+    await recordAuditEvent(userId, 'pdf_split', { pages: pageSpec });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename="sansa-split.pdf"');
+    return res.send(out);
+  } catch (error) {
+    next(error);
   }
 });
 
