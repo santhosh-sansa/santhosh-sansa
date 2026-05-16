@@ -169,3 +169,9 @@ Make sure these directories are writable:
 - `tmp/` — for temporary files
 
 In cPanel Terminal: `chmod 755 uploads data tmp`
+
+---
+
+## After go-live (Week 1)
+
+Use **`deploy-ready/STABILIZE_WEEK1_CHECKLIST.md`** — daily 10–15 minute smoke tests, Network tab review, and error-log checks so production issues are caught early.
