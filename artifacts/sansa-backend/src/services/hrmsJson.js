@@ -81,10 +81,42 @@ async function addAttendance(body = {}) {
   return row;
 }
 
+function escapeCsvCell(val) {
+  const s = String(val ?? '');
+  if (/[",\r\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  return s;
+}
+
+function csvLine(cells) {
+  return `${cells.map(escapeCsvCell).join(',')}\r\n`;
+}
+
+async function exportEmployeesCsv() {
+  const rows = await listEmployees();
+  let out = csvLine(['id', 'name', 'role', 'department', 'joinedAt']);
+  for (const e of rows) {
+    out += csvLine([e.id, e.name, e.role, e.department, e.joinedAt]);
+  }
+  return out;
+}
+
+async function exportAttendanceCsv() {
+  const state = await readState();
+  const nameById = new Map(state.employees.map((emp) => [emp.id, emp.name]));
+  const rows = await listAttendance();
+  let out = csvLine(['id', 'employeeId', 'employeeName', 'date', 'status', 'note']);
+  for (const r of rows) {
+    out += csvLine([r.id, r.employeeId, nameById.get(r.employeeId) || '', r.date, r.status, r.note || '']);
+  }
+  return out;
+}
+
 module.exports = {
   listEmployees,
   addEmployee,
   deleteEmployee,
   listAttendance,
   addAttendance,
+  exportEmployeesCsv,
+  exportAttendanceCsv,
 };

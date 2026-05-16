@@ -128,6 +128,35 @@
         .join('') || '<tr><td colspan="4">No attendance rows yet.</td></tr>';
     }
 
+    async function downloadHrmsCsv(kind) {
+      const res = await fetch(`${apiBase()}/api/hrms/export?kind=${encodeURIComponent(kind)}`, { credentials: 'include' });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || err.message || res.statusText);
+      }
+      const blob = await res.blob();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = kind === 'attendance' ? 'hrms-attendance.csv' : 'hrms-employees.csv';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    root.querySelector('[data-hrms-csv-emp]').addEventListener('click', async () => {
+      try {
+        await downloadHrmsCsv('employees');
+      } catch (e) {
+        alert(e.message);
+      }
+    });
+    root.querySelector('[data-hrms-csv-att]').addEventListener('click', async () => {
+      try {
+        await downloadHrmsCsv('attendance');
+      } catch (e) {
+        alert(e.message);
+      }
+    });
+
     root.querySelector('[data-hrms-add]').addEventListener('click', async () => {
       await fetchJson('/api/hrms/employees', {
         method: 'POST',
@@ -263,6 +292,10 @@
           </section>
           <section class="mvp-panel">
             <h3>Employees</h3>
+            <div class="mvp-inline">
+              <button type="button" class="route-button" data-hrms-csv-emp>Employees CSV</button>
+              <button type="button" class="route-button" data-hrms-csv-att>Attendance CSV</button>
+            </div>
             <table class="mvp-table"><thead><tr><th>Name</th><th>Role</th><th>Dept</th><th>Joined</th><th></th></tr></thead><tbody data-hrms-emp-body></tbody></table>
           </section>
           <section class="mvp-panel mvp-span2">
