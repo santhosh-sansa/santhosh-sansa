@@ -51,3 +51,5 @@ Thumbs.db
 # SANSA backend runtime dirs (created at startup / uploads)
 artifacts/sansa-backend/uploads/**
 artifacts/sansa-backend/tmp/**
+# Never commit LiteSpeed .htaccess with SetEnv secrets (Sansa Frontend zip may include one)
+artifacts/sansa-backend/public/api/.htaccess

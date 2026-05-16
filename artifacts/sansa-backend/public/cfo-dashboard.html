@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SANSA AI CFO Dashboard</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="index.html"><span class="brand-mark">S</span><strong>SANSA</strong></a>
+    <button id="mobileMenuBtn" class="hamburger" type="button" aria-label="Open menu">☰</button>
+    <nav id="mainNav" class="main-nav">
+      <a href="index.html">Home</a>
+      <a href="invoice.html">Invoice</a>
+      <a href="customer-portal.html">Portal</a>
+    </nav>
+    <button class="upgrade-btn" type="button" data-upgrade>Upgrade</button>
+  </header>
+
+  <main class="page-wrap">
+    <section class="page-title">
+      <span class="eyebrow">AI CFO</span>
+      <h1>Business health dashboard</h1>
+      <p>Values are stored in localStorage for this demo website.</p>
+    </section>
+
+    <section class="dashboard-grid">
+      <article><span>Sales</span><strong id="salesValue">₹0</strong></article>
+      <article><span>Profit</span><strong id="profitValue">₹0</strong></article>
+      <article><span>Pending</span><strong id="pendingValue">₹0</strong></article>
+    </section>
+
+    <section class="form-panel">
+      <h2>Update dashboard</h2>
+      <div class="three-col">
+        <label>Sales <input id="salesInput" type="number" value="0"></label>
+        <label>Profit <input id="profitInput" type="number" value="0"></label>
+        <label>Pending <input id="pendingInput" type="number" value="0"></label>
+      </div>
+      <button id="saveCfoBtn" type="button">Save CFO Data</button>
+    </section>
+  </main>
+
+  <script src="js/main.js" defer></script>
+  <script src="js/ai-features.js" defer></script>
+</body>
+</html>

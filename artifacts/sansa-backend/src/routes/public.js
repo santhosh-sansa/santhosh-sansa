@@ -70,6 +70,7 @@ const {
   skillStatus,
   runSkillWorkflow,
 } = require('../services/skillEngine');
+const { listBundledSkillZips } = require('../services/skillPackInventory');
 const { liveAuditStatus } = require('../services/liveAudit');
 const {
   platformCatalog,
@@ -750,7 +751,13 @@ router.get('/skills/catalog', (req, res) => {
 });
 
 router.get('/skills/status', (req, res) => {
-  res.json(skillStatus());
+  const status = skillStatus();
+  status.bundledSkillPacks = listBundledSkillZips();
+  res.json(status);
+});
+
+router.get('/skills/packs', (req, res) => {
+  res.json({ ok: true, packs: listBundledSkillZips() });
 });
 
 router.get('/smithery/status', (req, res) => {

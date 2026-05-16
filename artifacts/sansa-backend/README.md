@@ -4,6 +4,8 @@ Node.js + Python + PostgreSQL AI search tool for cPanel-style hosting.
 
 ## What This Includes
 
+- **Sansa Frontend.zip** extras merged into `public/`: `invoice.html`, `cfo-dashboard.html`, `customer-portal.html`, `js/*`, `css/style.css` (same core `index.html` / `app.js` as the zip baseline).
+- **Skill & knowladge.zip** archives extracted to `data/skill-packs/` and listed via `GET /api/skills/status` (`bundledSkillPacks`) and `GET /api/skills/packs`.
 - Public AI search/chat UI
 - Admin login
 - Admin document upload
