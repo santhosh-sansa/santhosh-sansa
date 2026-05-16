@@ -8,7 +8,9 @@ const SANSA_API_BASE = IS_LOCAL
       ? ''
       : 'https://api.sansaai.in';
 
-window.__SANSA_CONFIG__ = window.__SANSA_CONFIG__ || {
+const existing = window.__SANSA_CONFIG__ && typeof window.__SANSA_CONFIG__ === 'object' ? window.__SANSA_CONFIG__ : {};
+window.__SANSA_CONFIG__ = {
   apiBaseUrl: SANSA_API_BASE,
   adminUrl: IS_LOCAL ? '/admin/' : 'https://api.sansaai.in/admin/',
+  ...existing,
 };

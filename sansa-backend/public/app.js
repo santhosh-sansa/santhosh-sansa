@@ -689,6 +689,21 @@
     else showView('home');
   }
 
+  function normalizeAuthEmail(value) {
+    return String(value || '').trim().toLowerCase();
+  }
+
+  function shouldUseInlineAdminLogin(email) {
+    const normalized = normalizeAuthEmail(email);
+    if (!normalized) return false;
+    const cfg = window.__SANSA_CONFIG__ || {};
+    const configured = normalizeAuthEmail(cfg.adminUsername);
+    const builtin = new Set(['admin@sansaai.in', 'admin@sansai.in', 'admin@sansa']);
+    if (builtin.has(normalized)) return true;
+    if (configured && normalized === configured) return true;
+    return false;
+  }
+
   function renderFireflyTools() {
     const container = $('#fireflyToolsGrid');
     if (!container || container.dataset.rendered) return;
@@ -717,7 +732,7 @@
     const email = $('#loginEmail').value.trim();
     const password = $('#loginPassword').value;
     try {
-      if (email.toLowerCase().startsWith('admin')) {
+      if (shouldUseInlineAdminLogin(email)) {
         const admin = await request('/api/admin/login', { method: 'POST', body: JSON.stringify({ username: email, password }) });
         state.admin = admin.admin;
         await loadPlatform();
