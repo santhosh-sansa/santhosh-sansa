@@ -2,6 +2,7 @@
   const config = window.__SANSA_CONFIG__ || window.SANSA_CONFIG || {};
   const API_BASE = String(config.apiBaseUrl || config.apiBase || '').replace(/\/$/, '');
   const apiUrl = (path) => `${API_BASE}${path}`;
+  const hidePublicAuth = Boolean(config.hideAccountUi);
   const state = {
     user: null,
     admin: null,
@@ -255,6 +256,7 @@
     renderSwitcher();
     renderProfile();
     renderWorkspace();
+    renderHeroActions();
     renderAuthState();
     if (state.admin) renderAdminFields();
   }
@@ -263,7 +265,11 @@
     const settings = state.settings || {};
     const promo = settings.promo || {};
     const hero = settings.hero || {};
-    $('#promoBar').innerHTML = `<strong>${h(promo.label || 'Launch offer:')}</strong> ${h(promo.text || 'Start SANSA Creative Cloud-style workspace with free AI credits.')} <button class="promo-button" data-open-auth="register">${h(promo.cta || 'Start free')}</button>`;
+    if (hidePublicAuth) {
+      $('#promoBar').innerHTML = `<strong>${h(promo.label || 'SANSA public mode:')}</strong> ${h(promo.text || 'Creative, PDF and AI tools are free to use in your browser — no sign-in required.')} <button type="button" class="promo-button" data-route="apps">${h('Explore apps')}</button>`;
+    } else {
+      $('#promoBar').innerHTML = `<strong>${h(promo.label || 'Launch offer:')}</strong> ${h(promo.text || 'Start SANSA Creative Cloud-style workspace with free AI credits.')} <button class="promo-button" data-open-auth="register">${h(promo.cta || 'Start free')}</button>`;
+    }
     $('#heroTitle').textContent = hero.title || 'Create something new with SANSA AI.';
     $('#heroSubtitle').textContent = hero.subtitle || 'Design visuals, edit PDFs, automate HR, manage payments and run AI workflows in one SANSA workspace.';
   }
@@ -433,7 +439,7 @@
     const form = event.target.closest('[data-ai-form]');
     if (!form) return;
     event.preventDefault();
-    if (!state.user) {
+    if (!state.user && !hidePublicAuth) {
       openAuth('login');
       return;
     }
@@ -455,7 +461,7 @@
       const res = await fetch(apiUrl(tool.endpoint), options);
       const data = await res.json().catch(() => ({}));
       if (!res.ok || data.ok === false || data.success === false) throw new Error(data.error || data.message || 'Tool failed.');
-      if (data.remainingCredits !== undefined) state.user.credits = data.remainingCredits;
+      if (data.remainingCredits !== undefined && state.user) state.user.credits = data.remainingCredits;
       renderAiResult(tool.id, data);
       renderProfile();
       await loadAiHistory();
@@ -467,8 +473,24 @@
     }
   }
 
+  function renderHeroActions() {
+    const ha = document.querySelector('#homeView .hero-actions');
+    if (!ha) return;
+    if (hidePublicAuth) {
+      ha.innerHTML = '<button class="outline-dark" type="button" data-route="apps">Explore apps</button><button class="primary-button" type="button" data-route="pricing">View plans</button>';
+    } else {
+      ha.innerHTML = '<button class="outline-dark" type="button" data-open-auth="register">Free trial</button><button class="primary-button" type="button" data-route="pricing">Save today</button>';
+    }
+  }
+
   function renderAuthState() {
+    document.body.classList.toggle('sansa-hide-public-auth', hidePublicAuth);
     const user = state.user;
+    if (hidePublicAuth) {
+      $('#signinButton')?.classList.add('hidden');
+      $('#profileButton')?.classList.add('hidden');
+      return;
+    }
     $('#signinButton').classList.toggle('hidden', Boolean(user));
     $('#profileButton').classList.toggle('hidden', !user);
     if (user) {
@@ -518,6 +540,7 @@
   }
 
   function openAuth(tab = 'login') {
+    if (hidePublicAuth) return;
     $('#authModal').classList.remove('hidden');
     switchAuthTab(tab);
     $('#loginEmail')?.focus();
@@ -671,6 +694,10 @@
   }
 
   async function checkout(planId) {
+    if (hidePublicAuth) {
+      showMessage('#siteNotice', 'Public free mode: open any app below and run tools without checkout.', 'success');
+      return;
+    }
     try {
       const data = await request('/api/subscription/checkout', { method: 'POST', body: JSON.stringify({ planId }) });
       const checkout = data.checkout || data;
@@ -686,7 +713,7 @@
   function bindEvents() {
     document.addEventListener('click', async (event) => {
       const authButton = event.target.closest('[data-open-auth]');
-      if (authButton) openAuth(authButton.dataset.openAuth);
+      if (authButton && !hidePublicAuth) openAuth(authButton.dataset.openAuth);
 
       const routeButton = event.target.closest('[data-route]');
       if (routeButton) showView(routeButton.dataset.route);
@@ -721,7 +748,7 @@
 
       const openApp = event.target.closest('[data-open-app]');
       if (openApp) {
-        if (!state.user) openAuth('login');
+        if (!state.user && !hidePublicAuth) openAuth('login');
         else openDashboardTool(openApp.dataset.openApp);
       }
 
@@ -811,6 +838,6 @@
 
   init().catch((error) => {
     console.error(error);
-    showMessage('#authMessage', 'SANSA platform failed to initialise. Please restart backend app.', 'error');
+    showMessage(hidePublicAuth ? '#siteNotice' : '#authMessage', 'SANSA platform failed to initialise. Please restart backend app.', 'error');
   });
 }());
