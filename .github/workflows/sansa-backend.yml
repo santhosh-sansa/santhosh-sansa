@@ -7,9 +7,11 @@
 #   MILESWEB_REPO_PATH      — Absolute path to git clone, e.g. /home/user/repos/santhosh-sansa
 #
 # Optional:
-#   MILESWEB_RESTART_CMD    — One line run after git pull, e.g.:
-#                             touch /home/user/tmp/restart-app
-#                             or a script that triggers cPanel Node restart if you have one.
+#   MILESWEB_RESTART_CMD    — Run on server after git pull, e.g.:
+#                             bash /home/YOURUSER/bin/sansa-restart.sh
+#                             Copy artifacts/sansa-backend/scripts/milesweb-restart.example.sh
+#                             to the server, customize, chmod +x. See README_DEPLOY.md section
+#                             "GitHub Actions: MILESWEB_RESTART_CMD".
 #
 # If deploy secrets are missing, the deploy job will fail on SSH connect — add secrets when ready,
 # or temporarily disable the deploy job (comment out) until MilesWeb side is prepared.

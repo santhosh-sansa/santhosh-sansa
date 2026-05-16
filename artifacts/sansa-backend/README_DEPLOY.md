@@ -20,6 +20,17 @@ This package is built for MilesWeb/cPanel Node.js with the existing CommonJS sta
 5. Copy `.env.example` to `.env` (or set variables in the Node.js app UI) and fill production values below.
 6. **Restart** the application.
 
+## GitHub Actions: `MILESWEB_RESTART_CMD` (SSH deploy)
+
+If you use the repo workflow `.github/workflows/sansa-backend.yml`, set secret **`MILESWEB_RESTART_CMD`** to a **one line** command that runs **on the server** after `git pull`. cPanel usually has **no universal restart API** from SSH, so use one of:
+
+1. **Copy the example script** from this package: `scripts/milesweb-restart.example.sh` → e.g. `$HOME/bin/sansa-restart.sh`, edit paths, uncomment **one** strategy your host supports (or keep no-op and still click **Restart** in cPanel after each deploy).
+2. Set the GitHub secret to an **absolute** path, for example:  
+   `MILESWEB_RESTART_CMD=bash /home/youruser/bin/sansa-restart.sh`
+3. If the script is a no-op, the app still updates after pull — you only need a manual **Restart** in **Setup Node.js App** until automation is wired.
+
+Ask MilesWeb support which automated restart option (touch file, `cloudlinux-selector`, etc.) applies to your Node.js application.
+
 ## Go-live checklist (do this before announcing the site)
 
 1. **Secrets** — Set a long random `SESSION_SECRET` (e.g. `openssl rand -base64 48` on your laptop) and a strong `ADMIN_PASSWORD`. Do not leave `REPLACE_*` placeholders from `.env.example`.
