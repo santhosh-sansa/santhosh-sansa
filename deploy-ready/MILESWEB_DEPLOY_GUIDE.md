@@ -172,6 +172,13 @@ In cPanel Terminal: `chmod 755 uploads data tmp`
 
 ---
 
-## After go-live (Week 1)
+## Post-deploy checklists (operations)
 
-Use **`deploy-ready/STABILIZE_WEEK1_CHECKLIST.md`** — daily 10–15 minute smoke tests, Network tab review, and error-log checks so production issues are caught early.
+After the app is live, use these **in order**:
+
+| Step | Document |
+|------|----------|
+| 1 — Stabilize (week 1) | `deploy-ready/STABILIZE_WEEK1_CHECKLIST.md` — daily smoke tests, Network tab review, error-log checks |
+| 2 — Backup & recovery | `deploy-ready/BACKUP_AND_RECOVERY_CHECKLIST.md` |
+
+When other ops PRs merge on GitHub, `git pull origin main` to pick up additional `deploy-ready/*CHECKLIST.md` files and refresh this table if needed.
