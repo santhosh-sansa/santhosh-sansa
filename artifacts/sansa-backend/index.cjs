@@ -93,9 +93,13 @@ app.get('/api/health', (req, res) => {
 
 app.use((error, req, res, next) => {
   console.error(error);
-  res.status(500).json({
+  const status = Number.isInteger(error.status) && error.status >= 400 && error.status < 600 ? error.status : 500;
+  if (res.headersSent) {
+    return next(error);
+  }
+  res.status(status).json({
     ok: false,
-    error: 'Server problem. Please check logs and configuration.',
+    error: error.message || 'Server problem. Please check logs and configuration.',
   });
 });
 

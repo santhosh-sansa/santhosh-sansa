@@ -32,6 +32,7 @@ const {
 } = require('../services/platformData');
 const {
   createPaymentLink,
+  createRazorpayOrder,
   verifyRazorpayWebhook,
   recordWebhookPayment,
   storePaymentEvent,
@@ -92,7 +93,7 @@ const {
   buildAssistantReply,
 } = require('../services/creativeSuite');
 const { extractiveSummary, chatFromDocument, truncateForStudio } = require('../services/pdfStudio');
-const { mergePdfBuffers, splitPdfBuffer } = require('../services/pdfPages');
+const { mergePdfBuffers, splitPdfBuffer, watermarkPdfBuffer, reorderPdfBuffer } = require('../services/pdfPages');
 const {
   listEmployees,
   addEmployee,
@@ -101,6 +102,8 @@ const {
   addAttendance,
   exportEmployeesCsv,
   exportAttendanceCsv,
+  leaveBalancesForYear,
+  payrollStub,
 } = require('../services/hrmsJson');
 
 const router = express.Router();
@@ -653,6 +656,21 @@ router.post('/payments/create-link', async (req, res) => {
   }
 });
 
+router.post('/payments/create-order', async (req, res) => {
+  try {
+    const userId = req.session?.sansaUser?.id || 'guest';
+    const result = await createRazorpayOrder(req.body || {}, userId);
+    await recordAuditEvent(userId, 'payment_order_created', {
+      invoiceNumber: result.invoiceNumber,
+      amount: result.amount,
+      orderId: result.orderId,
+    });
+    res.json(result);
+  } catch (error) {
+    res.status(error.status || 500).json({ ok: false, error: error.message || 'Razorpay order failed.' });
+  }
+});
+
 router.get('/payments/ledger', async (req, res, next) => {
   try {
     const userId = req.session?.sansaUser?.id || 'guest';
@@ -752,6 +770,27 @@ router.get('/hrms/export', async (req, res, next) => {
     res.send(`\uFEFF${body}`);
   } catch (error) {
     next(error);
+  }
+});
+
+router.get('/hrms/leave-balance', async (req, res, next) => {
+  try {
+    const year = req.query.year;
+    res.json({ ok: true, rows: await leaveBalancesForYear(year) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/hrms/payroll-stub', async (req, res, next) => {
+  try {
+    const employeeId = String(req.query.employeeId || '').trim();
+    const month = String(req.query.month || '').trim();
+    const dailyRate = req.query.dailyRate;
+    const stub = await payrollStub(employeeId, month, dailyRate);
+    res.json(stub);
+  } catch (error) {
+    res.status(error.status || 500).json({ ok: false, error: error.message || 'Payroll stub failed.' });
   }
 });
 
@@ -1800,6 +1839,9 @@ router.post('/tools/pdf-merge', memoryUpload.array('pdfs', 20), async (req, res,
     res.setHeader('Content-Disposition', 'attachment; filename="sansa-merge.pdf"');
     return res.send(out);
   } catch (error) {
+    if (error.status) {
+      return res.status(error.status).json({ ok: false, error: error.message });
+    }
     next(error);
   }
 });
@@ -1817,6 +1859,55 @@ router.post('/tools/pdf-split', memoryUpload.single('pdf'), async (req, res, nex
     res.setHeader('Content-Disposition', 'attachment; filename="sansa-split.pdf"');
     return res.send(out);
   } catch (error) {
+    if (error.status) {
+      return res.status(error.status).json({ ok: false, error: error.message });
+    }
+    next(error);
+  }
+});
+
+router.post('/tools/pdf-watermark', memoryUpload.single('pdf'), async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ ok: false, error: 'Upload one PDF as field pdf.' });
+    }
+    const text = String(req.body?.text || req.body?.watermark || 'SANSA').trim();
+    const out = await watermarkPdfBuffer(req.file.buffer, text);
+    const userId = req.session?.sansaUser?.id || 'guest';
+    await recordAuditEvent(userId, 'pdf_watermark', { len: text.length });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename="sansa-watermark.pdf"');
+    return res.send(out);
+  } catch (error) {
+    if (error.status) {
+      return res.status(error.status).json({ ok: false, error: error.message });
+    }
+    next(error);
+  }
+});
+
+router.post('/tools/pdf-reorder', memoryUpload.single('pdf'), async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ ok: false, error: 'Upload one PDF as field pdf.' });
+    }
+    const orderSpec = String(req.body?.order || '').trim();
+    if (!orderSpec) {
+      return res.status(422).json({
+        ok: false,
+        error: 'Body field "order" is required: comma-separated 0-based page indices for the full document, e.g. 2,0,1.',
+      });
+    }
+    const out = await reorderPdfBuffer(req.file.buffer, orderSpec);
+    const userId = req.session?.sansaUser?.id || 'guest';
+    await recordAuditEvent(userId, 'pdf_reorder', { order: orderSpec.slice(0, 200) });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename="sansa-reorder.pdf"');
+    return res.send(out);
+  } catch (error) {
+    if (error.status) {
+      return res.status(error.status).json({ ok: false, error: error.message });
+    }
     next(error);
   }
 });
@@ -1910,6 +2001,16 @@ router.post('/search', async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+});
+
+router.use((err, req, res, next) => {
+  if (err && (err.code === 'LIMIT_FILE_SIZE' || err.name === 'MulterError')) {
+    return res.status(413).json({
+      ok: false,
+      error: 'File too large (max 15 MB per upload for PDF tools). Use a smaller PDF or split it first.',
+    });
+  }
+  next(err);
 });
 
 module.exports = router;
