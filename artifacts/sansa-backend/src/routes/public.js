@@ -99,6 +99,8 @@ const {
   deleteEmployee,
   listAttendance,
   addAttendance,
+  exportEmployeesCsv,
+  exportAttendanceCsv,
 } = require('../services/hrmsJson');
 
 const router = express.Router();
@@ -737,6 +739,19 @@ router.post('/hrms/attendance', async (req, res, next) => {
     res.json({ ok: true, row });
   } catch (error) {
     res.status(error.status || 500).json({ ok: false, error: error.message || 'Failed to record attendance.' });
+  }
+});
+
+router.get('/hrms/export', async (req, res, next) => {
+  try {
+    const kind = String(req.query.kind || 'employees').toLowerCase();
+    const body = kind === 'attendance' ? await exportAttendanceCsv() : await exportEmployeesCsv();
+    const filename = kind === 'attendance' ? 'hrms-attendance.csv' : 'hrms-employees.csv';
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(`\uFEFF${body}`);
+  } catch (error) {
+    next(error);
   }
 });
 
