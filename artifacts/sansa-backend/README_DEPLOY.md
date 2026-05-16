@@ -79,6 +79,7 @@ SESSION_SECRET=<openssl rand -base64 48 or similar, 32+ chars>
 Optional:
 
 ```text
+SANSA_PUBLIC_AI=1
 DATABASE_URL=
 RAZORPAY_KEY_ID=
 RAZORPAY_KEY_SECRET=

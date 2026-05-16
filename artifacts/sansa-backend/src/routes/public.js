@@ -291,6 +291,23 @@ function requireSaasUser(req, res, next) {
   return res.status(401).json({ ok: false, error: 'Login required.' });
 }
 
+function publicAiEnabled() {
+  const explicit = String(process.env.SANSA_PUBLIC_AI || '').trim().toLowerCase();
+  if (explicit === '0' || explicit === 'false') return false;
+  if (explicit === '1' || explicit === 'true') return true;
+  return String(process.env.APP_BASE_URL || '').includes('sansaai.in');
+}
+
+function requireSaasUserOrPublicAi(req, res, next) {
+  if (req.session?.sansaUser) return next();
+  if (publicAiEnabled()) return next();
+  return res.status(401).json({ ok: false, error: 'Login required.' });
+}
+
+function creativeActorId(req) {
+  return (req.session?.sansaUser && req.session.sansaUser.id) || 'guest';
+}
+
 router.get('/auth/me', async (req, res, next) => {
   try {
     const user = req.session?.sansaUser || null;
@@ -402,15 +419,22 @@ router.get('/dashboard', async (req, res, next) => {
 });
 
 async function spendCreativeCredits(req, cost) {
-  const remainingCredits = await consumeCredits(req.session.sansaUser, cost);
+  const user = req.session?.sansaUser;
+  if (!user) {
+    if (publicAiEnabled()) return 999999;
+    const err = new Error('Login required.');
+    err.status = 401;
+    throw err;
+  }
+  const remainingCredits = await consumeCredits(user, cost);
   req.session.sansaUser = {
-    ...req.session.sansaUser,
+    ...user,
     credits: remainingCredits,
   };
   return remainingCredits;
 }
 
-router.post('/ai/generate-image', requireSaasUser, async (req, res) => {
+router.post('/ai/generate-image', requireSaasUserOrPublicAi, async (req, res) => {
   try {
     const prompt = String(req.body?.prompt || '').trim();
     if (!prompt) return res.status(400).json({ ok: false, error: 'Prompt is required.' });
@@ -418,67 +442,67 @@ router.post('/ai/generate-image', requireSaasUser, async (req, res) => {
     const size = String(req.body?.size || '1024x1024');
     const remainingCredits = await spendCreativeCredits(req, 1);
     const imageUrl = buildImageDataUrl(prompt, style, size);
-    await recordGeneration(req.session.sansaUser.id, { type: 'image', prompt, resultUrl: imageUrl, meta: { style, size } });
+    await recordGeneration(creativeActorId(req), { type: 'image', prompt, resultUrl: imageUrl, meta: { style, size } });
     return res.json({ ok: true, success: true, imageUrl, prompt, remainingCredits });
   } catch (error) {
     return res.status(error.status || 400).json({ ok: false, success: false, error: error.message || 'Image generation failed.' });
   }
 });
 
-router.post('/ai/edit-video', requireSaasUser, toolUpload.single('video'), async (req, res) => {
+router.post('/ai/edit-video', requireSaasUserOrPublicAi, toolUpload.single('video'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ ok: false, error: 'Video file is required.' });
     const effect = String(req.body?.effect || 'cinematic');
     const remainingCredits = await spendCreativeCredits(req, 2);
     const videoUrl = await copyUploadedFile(req.file, 'edited-video');
-    await recordGeneration(req.session.sansaUser.id, { type: 'video_edit', prompt: effect, resultUrl: videoUrl });
+    await recordGeneration(creativeActorId(req), { type: 'video_edit', prompt: effect, resultUrl: videoUrl });
     return res.json({ ok: true, success: true, videoUrl, effect, remainingCredits, message: 'Video workflow completed with SANSA fallback processing.' });
   } catch (error) {
     return res.status(error.status || 400).json({ ok: false, success: false, error: error.message || 'Video edit failed.' });
   }
 });
 
-router.post('/ai/edit-photo', requireSaasUser, toolUpload.single('photo'), async (req, res) => {
+router.post('/ai/edit-photo', requireSaasUserOrPublicAi, toolUpload.single('photo'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ ok: false, error: 'Photo file is required.' });
     const effect = String(req.body?.effect || 'enhance');
     const remainingCredits = await spendCreativeCredits(req, 1);
     const imageUrl = await copyUploadedFile(req.file, 'edited-photo');
-    await recordGeneration(req.session.sansaUser.id, { type: 'photo_edit', prompt: effect, resultUrl: imageUrl });
+    await recordGeneration(creativeActorId(req), { type: 'photo_edit', prompt: effect, resultUrl: imageUrl });
     return res.json({ ok: true, success: true, imageUrl, effect, remainingCredits, message: 'Photo workflow completed with SANSA fallback processing.' });
   } catch (error) {
     return res.status(error.status || 400).json({ ok: false, success: false, error: error.message || 'Photo edit failed.' });
   }
 });
 
-router.post('/ai/translate-video', requireSaasUser, async (req, res) => {
+router.post('/ai/translate-video', requireSaasUserOrPublicAi, async (req, res) => {
   try {
     const targetLanguage = String(req.body?.targetLanguage || 'ta');
     const videoUrl = String(req.body?.videoUrl || '').trim();
     const remainingCredits = await spendCreativeCredits(req, 3);
     const translatedSubtitles = `SANSA subtitle track (${targetLanguage}): This fallback output is ready. Connect Whisper/translation provider keys for real dubbing and subtitles.`;
-    await recordGeneration(req.session.sansaUser.id, { type: 'video_translation', prompt: videoUrl || targetLanguage, resultText: translatedSubtitles });
+    await recordGeneration(creativeActorId(req), { type: 'video_translation', prompt: videoUrl || targetLanguage, resultText: translatedSubtitles });
     return res.json({ ok: true, success: true, translatedSubtitles, subtitleText: translatedSubtitles, targetLanguage, remainingCredits });
   } catch (error) {
     return res.status(error.status || 400).json({ ok: false, success: false, error: error.message || 'Video translation failed.' });
   }
 });
 
-router.post('/ai/generate-sound', requireSaasUser, async (req, res) => {
+router.post('/ai/generate-sound', requireSaasUserOrPublicAi, async (req, res) => {
   try {
     const description = String(req.body?.description || '').trim();
     if (!description) return res.status(400).json({ ok: false, error: 'Sound description is required.' });
     const duration = Number(req.body?.duration || 5);
     const remainingCredits = await spendCreativeCredits(req, 1);
     const soundUrl = await createToneFile('sound-fx', { duration, frequency: 660 });
-    await recordGeneration(req.session.sansaUser.id, { type: 'sound_fx', prompt: description, resultUrl: soundUrl, meta: { duration } });
+    await recordGeneration(creativeActorId(req), { type: 'sound_fx', prompt: description, resultUrl: soundUrl, meta: { duration } });
     return res.json({ ok: true, success: true, soundUrl, duration, remainingCredits });
   } catch (error) {
     return res.status(error.status || 400).json({ ok: false, success: false, error: error.message || 'Sound generation failed.' });
   }
 });
 
-router.post('/ai/generate-music', requireSaasUser, async (req, res) => {
+router.post('/ai/generate-music', requireSaasUserOrPublicAi, async (req, res) => {
   try {
     const prompt = String(req.body?.prompt || '').trim();
     if (!prompt) return res.status(400).json({ ok: false, error: 'Music prompt is required.' });
@@ -486,37 +510,43 @@ router.post('/ai/generate-music', requireSaasUser, async (req, res) => {
     const length = Number(req.body?.length || 10);
     const remainingCredits = await spendCreativeCredits(req, 2);
     const musicUrl = await createToneFile('music', { duration: length, frequency: genre === 'classical' ? 523 : 392 });
-    await recordGeneration(req.session.sansaUser.id, { type: 'music', prompt, resultUrl: musicUrl, meta: { genre, length } });
+    await recordGeneration(creativeActorId(req), { type: 'music', prompt, resultUrl: musicUrl, meta: { genre, length } });
     return res.json({ ok: true, success: true, musicUrl, genre, length, remainingCredits });
   } catch (error) {
     return res.status(error.status || 400).json({ ok: false, success: false, error: error.message || 'Music generation failed.' });
   }
 });
 
-router.post('/ai/assistant', requireSaasUser, async (req, res) => {
+router.post('/ai/assistant', requireSaasUserOrPublicAi, async (req, res) => {
   try {
     const message = String(req.body?.message || '').trim();
     if (!message) return res.status(400).json({ ok: false, error: 'Message is required.' });
     const remainingCredits = await spendCreativeCredits(req, 1);
     const reply = buildAssistantReply(message);
-    await recordGeneration(req.session.sansaUser.id, { type: 'assistant', prompt: message, resultText: reply });
+    await recordGeneration(creativeActorId(req), { type: 'assistant', prompt: message, resultText: reply });
     return res.json({ ok: true, success: true, reply, remainingCredits });
   } catch (error) {
     return res.status(error.status || 400).json({ ok: false, success: false, error: error.message || 'Assistant failed.' });
   }
 });
 
-router.get('/ai/history', requireSaasUser, async (req, res, next) => {
+router.get('/ai/history', requireSaasUserOrPublicAi, async (req, res, next) => {
   try {
-    res.json({ ok: true, success: true, history: await listGenerations(req.session.sansaUser.id) });
+    const uid = req.session?.sansaUser?.id || 'guest';
+    res.json({ ok: true, success: true, history: await listGenerations(uid) });
   } catch (error) {
     next(error);
   }
 });
 
-router.get('/business/setup', requireSaasUser, async (req, res, next) => {
+router.get('/business/setup', async (req, res, next) => {
   try {
-    res.json({ ok: true, setup: await getBusinessSetup(req.session.sansaUser.id) });
+    const user = req.session?.sansaUser;
+    if (!user) {
+      if (publicAiEnabled()) return res.json({ ok: true, setup: {} });
+      return res.status(401).json({ ok: false, error: 'Login required.' });
+    }
+    res.json({ ok: true, setup: await getBusinessSetup(user.id) });
   } catch (error) {
     next(error);
   }
