@@ -1,0 +1,82 @@
+{
+  "id": "skill-knowledge-library-v1",
+  "title": "Skill & Knowledge bundle (index)",
+  "description": "Catalog metadata for inner packs listed inside Skill & knowladge.zip. Install one pack at a time by copying the inner .zip into data/skill-packs/ on the server (same folder as this JSON).",
+  "sourceArchive": "Skill & knowladge.zip",
+  "innerPathPrefix": "Skill/",
+  "version": 1,
+  "entries": [
+    {
+      "id": "anthropics-creating-financial-models",
+      "file": "anthropics-creating-financial-models.zip",
+      "title": "Anthropic — creating financial models",
+      "category": "Finance",
+      "bytes": 9787,
+      "tags": ["anthropic", "models", "xlsx"]
+    },
+    {
+      "id": "anthropics-docx",
+      "file": "anthropics-docx.zip",
+      "title": "Anthropic — DOCX skill",
+      "category": "Documents",
+      "bytes": 160876,
+      "tags": ["anthropic", "docx", "office"]
+    },
+    {
+      "id": "anthropics-pdf",
+      "file": "anthropics-pdf.zip",
+      "title": "Anthropic — PDF skill",
+      "category": "Documents",
+      "bytes": 21948,
+      "tags": ["anthropic", "pdf"]
+    },
+    {
+      "id": "anthropics-pptx",
+      "file": "anthropics-pptx.zip",
+      "title": "Anthropic — PPTX skill",
+      "category": "Documents",
+      "bytes": 165641,
+      "tags": ["anthropic", "pptx", "office"]
+    },
+    {
+      "id": "anthropics-skill-creator",
+      "file": "anthropics-skill-creator.zip",
+      "title": "Anthropic — skill creator",
+      "category": "Developer AI",
+      "bytes": 74541,
+      "tags": ["anthropic", "skills", "meta"]
+    },
+    {
+      "id": "anthropics-xlsx",
+      "file": "anthropics-xlsx.zip",
+      "title": "Anthropic — XLSX skill",
+      "category": "Documents",
+      "bytes": 152939,
+      "tags": ["anthropic", "xlsx", "office"]
+    },
+    {
+      "id": "github-image-manipulation-image-magick",
+      "file": "github-image-manipulation-image-magick.zip",
+      "title": "GitHub — ImageMagick image manipulation",
+      "category": "Creative",
+      "bytes": 2447,
+      "tags": ["image", "imagemagick", "github"]
+    },
+    {
+      "id": "github-prd",
+      "file": "github-prd.zip",
+      "title": "GitHub — PRD skill",
+      "category": "Product",
+      "bytes": 2266,
+      "tags": ["prd", "github", "planning"]
+    },
+    {
+      "id": "nextlevelbuilder-ui-ux-pro-max",
+      "file": "nextlevelbuilder-ui-ux-pro-max.zip",
+      "title": "NextLevelBuilder — UI/UX Pro Max",
+      "category": "Design",
+      "bytes": 17810,
+      "tags": ["ui", "ux", "design"]
+    }
+  ]
+}

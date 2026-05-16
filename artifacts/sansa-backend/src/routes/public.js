@@ -71,7 +71,7 @@ const {
   skillStatus,
   runSkillWorkflow,
 } = require('../services/skillEngine');
-const { listBundledSkillZips } = require('../services/skillPackInventory');
+const { listBundledSkillZips, readKnowledgeLibraryManifest } = require('../services/skillPackInventory');
 const { liveAuditStatus } = require('../services/liveAudit');
 const {
   platformCatalog,
@@ -901,11 +901,16 @@ router.get('/skills/catalog', (req, res) => {
 router.get('/skills/status', (req, res) => {
   const status = skillStatus();
   status.bundledSkillPacks = listBundledSkillZips();
+  status.knowledgeLibrary = readKnowledgeLibraryManifest();
   res.json(status);
 });
 
 router.get('/skills/packs', (req, res) => {
-  res.json({ ok: true, packs: listBundledSkillZips() });
+  res.json({
+    ok: true,
+    packs: listBundledSkillZips(),
+    knowledgeLibrary: readKnowledgeLibraryManifest(),
+  });
 });
 
 router.get('/smithery/status', (req, res) => {

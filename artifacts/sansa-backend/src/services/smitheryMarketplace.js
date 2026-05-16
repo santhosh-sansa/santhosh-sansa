@@ -1,3 +1,5 @@
+const { readKnowledgeLibraryManifest } = require('./skillPackInventory');
+
 const smitherySkillPacks = [
   {
     id: 'smithery-pdf-office-suite',
@@ -77,6 +79,20 @@ function hasAnyEnv(keys = []) {
   return keys.some((key) => Boolean(process.env[key]));
 }
 
+function knowledgeZipLibrarySummary() {
+  const lib = readKnowledgeLibraryManifest();
+  if (!lib || !Array.isArray(lib.entries)) return null;
+  const installedCount = lib.entries.filter((e) => e.installed).length;
+  return {
+    catalogId: lib.id,
+    title: lib.title,
+    entryCount: lib.entries.length,
+    installedCount,
+    sourceArchive: lib.sourceArchive,
+    manifestPath: 'data/skill-packs/knowledge-library-v1.json',
+  };
+}
+
 function smitheryStatus() {
   const enabled = smitherySkillPacks.filter((pack) => hasAnyEnv(pack.env)).length;
   return {
@@ -88,10 +104,12 @@ function smitheryStatus() {
     providerReadyPacks: enabled,
     fallbackPacks: smitherySkillPacks.length - enabled,
     categories: [...new Set(smitherySkillPacks.map((pack) => pack.category))],
+    knowledgeZipLibrarySummary: knowledgeZipLibrarySummary(),
   };
 }
 
 function smitheryCatalog() {
+  const knowledgeZipLibrary = readKnowledgeLibraryManifest();
   return {
     ...smitheryStatus(),
     packs: smitherySkillPacks.map((pack) => ({
@@ -100,6 +118,7 @@ function smitheryCatalog() {
       fallback: !hasAnyEnv(pack.env),
       installState: 'attached-to-sansa',
     })),
+    knowledgeZipLibrary,
   };
 }
 
