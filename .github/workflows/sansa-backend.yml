@@ -1,0 +1,76 @@
+# SANSA backend: CI syntax check + optional MilesWeb SSH deploy on main.
+#
+# Required repository Secrets (Settings → Secrets and variables → Actions):
+#   MILESWEB_SSH_HOST       — e.g. kindle.example.com or server IP
+#   MILESWEB_SSH_USER       — SSH login (e.g. qwvivdsn)
+#   MILESWEB_SSH_KEY        — Private key PEM (full multiline key)
+#   MILESWEB_REPO_PATH      — Absolute path to git clone, e.g. /home/user/repos/santhosh-sansa
+#
+# Optional:
+#   MILESWEB_RESTART_CMD    — One line run after git pull, e.g.:
+#                             touch /home/user/tmp/restart-app
+#                             or a script that triggers cPanel Node restart if you have one.
+#
+# If deploy secrets are missing, the deploy job will fail on SSH connect — add secrets when ready,
+# or temporarily disable the deploy job (comment out) until MilesWeb side is prepared.
+
+name: SANSA backend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'artifacts/sansa-backend/**'
+      - '.github/workflows/sansa-backend.yml'
+  pull_request:
+    paths:
+      - 'artifacts/sansa-backend/**'
+      - '.github/workflows/sansa-backend.yml'
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: artifacts/sansa-backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Syntax check (node --check)
+        run: node scripts/verify-sansa.cjs
+
+  deploy:
+    needs: verify
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Deploy over SSH (git pull + optional restart)
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          MILESWEB_REPO_PATH: ${{ secrets.MILESWEB_REPO_PATH }}
+          MILESWEB_RESTART_CMD: ${{ secrets.MILESWEB_RESTART_CMD }}
+        with:
+          host: ${{ secrets.MILESWEB_SSH_HOST }}
+          username: ${{ secrets.MILESWEB_SSH_USER }}
+          key: ${{ secrets.MILESWEB_SSH_KEY }}
+          envs: MILESWEB_REPO_PATH,MILESWEB_RESTART_CMD
+          script_stop: true
+          script: |
+            set -euo pipefail
+            if [ -z "${MILESWEB_REPO_PATH:-}" ]; then
+              echo "MILESWEB_REPO_PATH secret is not set."
+              exit 1
+            fi
+            cd "$MILESWEB_REPO_PATH"
+            git config pull.rebase false
+            git fetch origin main
+            git checkout main
+            git pull origin main
+            if [ -n "${MILESWEB_RESTART_CMD:-}" ]; then
+              eval "$MILESWEB_RESTART_CMD"
+            else
+              echo "MILESWEB_RESTART_CMD not set — pulled latest main only. Add secret to restart Node."
+            fi
