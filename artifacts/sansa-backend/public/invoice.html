@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SANSA Invoice PDF</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="index.html"><span class="brand-mark">S</span><strong>SANSA</strong></a>
+    <button id="mobileMenuBtn" class="hamburger" type="button" aria-label="Open menu">☰</button>
+    <nav id="mainNav" class="main-nav">
+      <a href="index.html">Home</a>
+      <a href="cfo-dashboard.html">AI CFO</a>
+      <a href="customer-portal.html">Portal</a>
+    </nav>
+    <button class="upgrade-btn" type="button" data-upgrade>Upgrade</button>
+  </header>
+
+  <main class="page-wrap">
+    <section class="page-title">
+      <span class="eyebrow">Invoice PDF</span>
+      <h1>Create GST invoice</h1>
+      <p>Enter customer and item details. SANSA calculates GST at 18% and creates a downloadable PDF.</p>
+      <strong id="downloadsLeft">Today left: 2 downloads</strong>
+    </section>
+
+    <section class="form-panel">
+      <label>Customer name
+        <input id="invoiceCustomer" type="text" placeholder="Customer name">
+      </label>
+      <label>Item description
+        <input id="itemDescription" type="text" placeholder="Website design service">
+      </label>
+      <div class="two-col">
+        <label>Quantity
+          <input id="itemQty" type="number" min="1" value="1">
+        </label>
+        <label>Price
+          <input id="itemPrice" type="number" min="0" value="1000">
+        </label>
+      </div>
+      <button id="generateInvoiceBtn" type="button">Generate Invoice PDF</button>
+      <div id="invoicePreview" class="result-box">Invoice preview appears here.</div>
+    </section>
+  </main>
+
+  <script src="js/main.js" defer></script>
+  <script src="js/business.js" defer></script>
+</body>
+</html>

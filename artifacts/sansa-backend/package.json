@@ -1,0 +1,27 @@
+{
+  "name": "sansa-super-ai",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SANSA AI Super Intelligence Search Tool for cPanel Node.js",
+  "main": "index.cjs",
+  "scripts": {
+    "start": "node index.cjs",
+    "dev": "node index.cjs",
+    "verify": "node scripts/verify-sansa.cjs",
+    "check:env": "node scripts/check-production-env.cjs"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "connect-pg-simple": "^9.0.1",
+    "cookie-parser": "^1.4.6",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "multer": "^1.4.5-lts.1",
+    "pdf-lib": "1.17.1",
+    "pg": "^8.12.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

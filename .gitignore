@@ -47,6 +47,17 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Local env (never commit secrets)
 sansa-backend/.env
-api/.htaccess
-*.htaccess
+artifacts/sansa-backend/.env
+
+# Root-level bulk uploads (GitHub "Add files via upload"). Prefer Releases, S3, or Drive — not git.
+/*.zip
+/*.rar
+
+# SANSA backend runtime dirs (created at startup / uploads)
+artifacts/sansa-backend/uploads/**
+artifacts/sansa-backend/tmp/**
+# Never commit LiteSpeed .htaccess with SetEnv secrets (Sansa Frontend zip may include one)
+artifacts/sansa-backend/public/api/.htaccess

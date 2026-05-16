@@ -1,0 +1,50 @@
+[
+  {
+    "userId": "social-google-1778548949284",
+    "eventName": "social_login",
+    "data": {
+      "provider": "Google"
+    },
+    "createdAt": "2026-05-12T01:22:29.285Z"
+  },
+  {
+    "userId": "guest",
+    "eventName": "skill_engine_run",
+    "data": {
+      "skillId": "speech",
+      "group": "Audio",
+      "providerConfigured": false
+    },
+    "createdAt": "2026-05-10T21:18:40.273Z"
+  },
+  {
+    "userId": "guest",
+    "eventName": "skill_engine_run",
+    "data": {
+      "skillId": "pdf",
+      "group": "Documents",
+      "providerConfigured": false
+    },
+    "createdAt": "2026-05-10T21:11:56.595Z"
+  },
+  {
+    "userId": "guest",
+    "eventName": "skill_engine_run",
+    "data": {
+      "skillId": "pdf",
+      "group": "Documents",
+      "providerConfigured": false
+    },
+    "createdAt": "2026-05-10T21:08:41.278Z"
+  },
+  {
+    "userId": "guest",
+    "eventName": "skill_engine_run",
+    "data": {
+      "skillId": "speech",
+      "group": "Audio",
+      "providerConfigured": false
+    },
+    "createdAt": "2026-05-10T20:44:41.880Z"
+  }
+]

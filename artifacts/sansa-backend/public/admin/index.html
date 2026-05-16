@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SANSA Admin</title>
+  <link rel="icon" type="image/png" href="../sansa-logo.png">
+  <link rel="stylesheet" href="../styles.css?v=sansa-adobe-template-admin-2026-v1">
+</head>
+<body class="admin-body">
+  <aside class="admin-side admin-side-pro">
+    <div class="admin-brand">
+      <img src="../sansa-logo.png" alt="SANSA AI logo">
+      <strong>SANSA Admin</strong>
+      <small>Website control room</small>
+    </div>
+    <a href="../">Public App</a>
+    <a href="./">Public Settings</a>
+    <a id="apiAdminLink" href="https://api.sansaai.in/admin">Backend Admin</a>
+    <a href="https://api.sansaai.in/admin/skills">Skill Engine</a>
+    <button id="previewPublic" type="button">Preview Public</button>
+  </aside>
+
+  <main class="admin-main admin-main-pro">
+    <header class="admin-head admin-hero">
+      <div>
+        <p class="eyebrow">SANSA ADMIN 2026</p>
+        <h1>Public Website Control</h1>
+        <p>Hero text, visible tools, service cards, backend connection, import/export, and live preview in one strong panel.</p>
+      </div>
+      <div class="admin-status-card">
+        <span id="adminSaveState">Ready</span>
+        <strong id="enabledCount">0 active tools</strong>
+        <button id="checkBackend" type="button">Check Backend</button>
+      </div>
+    </header>
+
+    <section class="admin-command-strip" aria-label="Admin quick actions">
+      <button type="button" data-admin-tab="content">Content</button>
+      <button type="button" data-admin-tab="services">Services</button>
+      <button type="button" data-admin-tab="modules">Modules</button>
+      <button type="button" data-admin-tab="system">System</button>
+      <button type="button" data-admin-tab="engine">Tool Engine</button>
+      <a class="admin-inline-link" href="https://api.sansaai.in/admin/skills">Skill Engine</a>
+      <button id="exportSettings" type="button">Export</button>
+      <label class="admin-import">Import<input id="importSettings" type="file" accept="application/json,.json"></label>
+    </section>
+
+    <form id="localPublicSettings" class="admin-workspace">
+      <section class="panel admin-section" data-admin-panel="content">
+        <div class="admin-section-head">
+          <span class="heading-icon" aria-hidden="true">TXT</span>
+          <div>
+            <h2>Hero Content</h2>
+            <p class="muted">Less words, clearer headline, better first screen.</p>
+          </div>
+        </div>
+        <input id="heroPillInput" placeholder="Hero pill">
+        <input id="heroTitleInput" placeholder="Hero title">
+        <textarea id="heroSubtitleInput" placeholder="Hero subtitle"></textarea>
+        <h3>PDF Platform Hub</h3>
+        <input id="platformPillInput" placeholder="Platform pill">
+        <input id="platformTitleInput" placeholder="Platform title">
+        <textarea id="platformSubtitleInput" placeholder="Platform subtitle"></textarea>
+
+        <div class="admin-settings-grid">
+          <label class="setting-check"><input id="showAdminButtonInput" type="checkbox" disabled> Admin hidden on public</label>
+          <label class="setting-check"><input id="quickToolsInput" type="checkbox"> Show Quick PDF tools</label>
+          <label class="setting-check"><input id="platformHubInput" type="checkbox"> Show PDF platform hub</label>
+          <label class="setting-check"><input id="pricingInput" type="checkbox"> Show pricing plans</label>
+        </div>
+      </section>
+
+      <section class="panel admin-section" data-admin-panel="services">
+        <div class="admin-section-head">
+          <span class="heading-icon" aria-hidden="true">CARD</span>
+          <div>
+            <h2>Public Services</h2>
+            <p class="muted">Control cards, labels, descriptions, and pricing.</p>
+          </div>
+        </div>
+        <div id="serviceControls" class="admin-card-grid"></div>
+      </section>
+
+      <section class="panel admin-section" data-admin-panel="modules">
+        <div class="admin-section-head">
+          <span class="heading-icon" aria-hidden="true">APP</span>
+          <div>
+            <h2>Option Tabs</h2>
+            <p class="muted">Turn public modules on/off and rename tabs.</p>
+          </div>
+        </div>
+        <div id="toolControls" class="admin-settings-grid"></div>
+        <h3>Visual PDF Platform Cards</h3>
+        <div id="featureControls" class="admin-card-grid"></div>
+      </section>
+
+      <section class="panel admin-section" data-admin-panel="system">
+        <div class="admin-section-head">
+          <span class="heading-icon" aria-hidden="true">API</span>
+          <div>
+            <h2>System Checks</h2>
+            <p class="muted">Use this before uploading to MilesWeb/cPanel.</p>
+          </div>
+        </div>
+        <div class="admin-health-grid">
+          <div><span>Local settings</span><strong id="localHealth">Ready</strong></div>
+          <div><span>Backend API</span><strong id="backendHealth">Not checked</strong></div>
+          <div><span>Public URL</span><strong id="publicHealth">../</strong></div>
+          <div><span>Subscription</span><strong>Free + Paid</strong></div>
+          <div><span>Security</span><strong>Gateway only</strong></div>
+          <div><span>Storage</span><strong>Browser + JSON export</strong></div>
+        </div>
+        <textarea id="settingsPreview" readonly></textarea>
+      </section>
+
+      <section class="panel admin-section" data-admin-panel="engine">
+        <div class="admin-section-head">
+          <span class="heading-icon" aria-hidden="true">RUN</span>
+          <div>
+            <h2>Real Tool Engine</h2>
+            <p class="muted">Checks whether every public option has an internal SANSA action and backend API-ready fallback.</p>
+          </div>
+        </div>
+        <div class="admin-health-grid">
+          <div><span>Engine API</span><strong id="engineHealth">Not checked</strong></div>
+          <div><span>Mapped actions</span><strong id="engineActionCount">0</strong></div>
+          <div><span>cPanel safe</span><strong id="engineCpanel">Yes</strong></div>
+          <div><span>Provider keys</span><strong id="engineProviders">Check</strong></div>
+        </div>
+        <div class="builder-actions">
+          <button id="checkEngine" type="button">Check Engine</button>
+          <a class="secondary-btn" href="https://api.sansaai.in/admin/engine" target="_blank" rel="noopener">Backend Engine Admin</a>
+        </div>
+        <textarea id="enginePreview" readonly placeholder="Engine coverage and missing provider keys will appear here..."></textarea>
+      </section>
+
+      <div class="admin-save-bar">
+        <button type="submit">Save Public Settings</button>
+        <button id="applyPreview" class="secondary-btn" type="button">Apply + Preview</button>
+        <button id="resetSettings" class="secondary-btn" type="button">Reset</button>
+        <p id="saveStatus" class="muted">Ready.</p>
+      </div>
+    </form>
+  </main>
+
+  <script>
+    const defaultSettings = {
+      hero: {
+        pill: 'SANSA PDF GENERATOR',
+        title: 'Sansa AI PDF Studio',
+        subtitle: 'Create clean Resume, Legal, and Invoice PDFs from simple Tamil or English details.',
+      },
+      showAdminButton: false,
+      quickTools: true,
+      platformHub: true,
+      pricing: true,
+      platform: {
+        pill: 'SANSA PDF PLATFORM',
+        title: 'All PDF tools in one clean workspace',
+        subtitle: 'Upload, create, convert, scan, sign, and share documents from a visual tool hub.',
+      },
+      services: {
+        career: { enabled: true, label: 'Resume PDF', title: 'Career AI', note: 'Tamil details to professional English resume PDF.', price: 'From Rs.49' },
+        legal: { enabled: true, label: 'Legal PDF', title: 'Legal Docs', note: 'Agreement, affidavit, notice, and petition drafts.', price: 'From Rs.29' },
+        invoice: { enabled: true, label: 'Invoice PDF', title: 'Invoice', note: 'Customer bill with items, totals, tax, and payment notes.', price: 'From Rs.19' },
+      },
+      tools: {
+        dashboard: { enabled: true, label: 'Dashboard' },
+        onboarding: { enabled: true, label: 'Onboarding' },
+        growth: { enabled: true, label: 'Growth' },
+        payments: { enabled: true, label: 'Payments' },
+        cfo: { enabled: true, label: 'AI CFO' },
+        creative: { enabled: true, label: 'Creative AI' },
+        products: { enabled: true, label: 'Products' },
+        skills: { enabled: true, label: 'Skill Hub' },
+        realEngine: { enabled: true, label: 'Tool Engine' },
+        assistant: { enabled: true, label: 'AI Assistant' },
+        accountant: { enabled: true, label: 'AI Accountant' },
+        profile: { enabled: true, label: 'Business' },
+        items: { enabled: true, label: 'Customers & Items' },
+        document: { enabled: true, label: 'PDF Builder' },
+        history: { enabled: true, label: 'History' },
+        quote: { enabled: true, label: 'Quotation' },
+        brain: { enabled: true, label: 'AI Brain' },
+        reminders: { enabled: true, label: 'Reminders' },
+        expenses: { enabled: true, label: 'OCR Expenses' },
+        reports: { enabled: true, label: 'GST Reports' },
+        share: { enabled: true, label: 'Share' },
+      },
+      features: {
+        'create-pdf': { enabled: true, title: 'Create PDF', note: 'Resume, legal, invoice, quotation.' },
+        'text-pdf': { enabled: true, title: 'Text to PDF', note: 'Paste text and download PDF.' },
+        'image-pdf': { enabled: true, title: 'Image to PDF', note: 'Photos and images to print PDF.' },
+        'jpg-pdf': { enabled: true, title: 'JPG to PDF', note: 'Turn customer photos into PDF pages.' },
+        'pdf-text': { enabled: true, title: 'PDF to Text', note: 'Extract readable text from PDFs.' },
+        'pdf-word': { enabled: true, title: 'PDF to Word', note: 'Extract text for Word editing.' },
+        'word-pdf': { enabled: true, title: 'Word to PDF', note: 'Paste document text and export PDF.' },
+        'pdf-excel': { enabled: true, title: 'PDF to Excel', note: 'Extract table text for spreadsheet use.' },
+        'pdf-ppt': { enabled: true, title: 'PDF to PPT', note: 'Analyze PDF and prepare slide notes.' },
+        'merge-pdf': { enabled: true, title: 'Merge PDF', note: 'Collect pages into one workflow.' },
+        'split-pdf': { enabled: true, title: 'Split PDF', note: 'Prepare separate page exports.' },
+        'compress-pdf': { enabled: true, title: 'Compress PDF', note: 'Optimize files before sharing.' },
+        'organize-pages': { enabled: true, title: 'Organize Pages', note: 'Rotate, reorder, extract, prepare.' },
+        'rotate-pages': { enabled: true, title: 'Rotate Pages', note: 'Prepare rotated pages for export.' },
+        'extract-pages': { enabled: true, title: 'Extract Pages', note: 'Keep only the pages you need.' },
+        'page-numbers': { enabled: true, title: 'Add Page Numbers', note: 'Prepare numbered business PDFs.' },
+        'protect-pdf': { enabled: true, title: 'Protect PDF', note: 'Watermark and review-safe export.' },
+        'watermark-pdf': { enabled: true, title: 'Add Watermark', note: 'Add SANSA/business watermark.' },
+        'compare-pdf': { enabled: true, title: 'Compare PDFs', note: 'Use AI Brain to compare key points.' },
+        'redact-pdf': { enabled: true, title: 'Redact PDF', note: 'Find sensitive fields before sharing.' },
+        'fill-sign': { enabled: true, title: 'Fill & Sign', note: 'Share, collect proof, WhatsApp.' },
+        'request-sign': { enabled: true, title: 'Request Signatures', note: 'Send portal/WhatsApp signing flow.' },
+        'ai-analyze': { enabled: true, title: 'AI Analyze PDF', note: 'Summary, key points, mistakes.' },
+        'scan-ocr': { enabled: true, title: 'Scan & OCR', note: 'Read bills, resumes, legal PDFs.' },
+        'invoice-tool': { enabled: true, title: 'Invoice PDF', note: 'GST bill, UPI QR, customer portal.' },
+        'payment-link': { enabled: true, title: 'Payment Link', note: 'UPI/Razorpay link and reminder.' },
+        'cfo-dashboard': { enabled: true, title: 'AI CFO Dashboard', note: 'Profit, GST, unpaid, cashflow.' },
+        'gst-report': { enabled: true, title: 'GST Report', note: 'Sales tax, input tax, net payable.' },
+        'customer-portal': { enabled: true, title: 'Customer Portal', note: 'Invoice view, pay, proof upload.' },
+        'resume-tool': { enabled: true, title: 'Resume PDF', note: 'Tamil details to professional resume.' },
+        'legal-tool': { enabled: true, title: 'Legal PDF', note: 'Agreement, affidavit, notice drafts.' },
+        edit: { enabled: true, title: 'Edit & Create PDF', note: 'Resume, invoice, legal, quotation.' },
+        convert: { enabled: true, title: 'Convert to PDF', note: 'Text and images to print-ready PDF.' },
+        ocr: { enabled: true, title: 'OCR & Document Brain', note: 'Extract text, summary, risks, missing fields.' },
+        sign: { enabled: true, title: 'Sign & Share', note: 'UPI QR, WhatsApp, proof collection.' },
+        finance: { enabled: true, title: 'Business Finance', note: 'Dashboard, GST, cashflow, fraud alerts.' },
+        collect: { enabled: true, title: 'Collect Payment', note: 'Payment links, reminders, customer ledger.' },
+      },
+    };
+
+    const serviceControls = document.getElementById('serviceControls');
+    const toolControls = document.getElementById('toolControls');
+    const featureControls = document.getElementById('featureControls');
+    const status = document.getElementById('saveStatus');
+    const saveState = document.getElementById('adminSaveState');
+    const settingsPreview = document.getElementById('settingsPreview');
+
+    function mergeSettings(saved) {
+      return {
+        ...defaultSettings,
+        ...saved,
+        hero: { ...defaultSettings.hero, ...(saved.hero || {}) },
+        services: { ...defaultSettings.services, ...(saved.services || {}) },
+        tools: { ...defaultSettings.tools, ...(saved.tools || {}) },
+        platform: { ...defaultSettings.platform, ...(saved.platform || {}) },
+        features: { ...defaultSettings.features, ...(saved.features || {}) },
+      };
+    }
+
+    function loadSettings() {
+      try {
+        return mergeSettings(JSON.parse(localStorage.getItem('sansaPublicSettings') || '{}'));
+      } catch (error) {
+        return defaultSettings;
+      }
+    }
+
+    function setActiveTab(tab) {
+      document.querySelectorAll('[data-admin-tab]').forEach((button) => {
+        button.classList.toggle('active', button.dataset.adminTab === tab);
+      });
+      document.querySelectorAll('[data-admin-panel]').forEach((panel) => {
+        panel.hidden = panel.dataset.adminPanel !== tab;
+      });
+    }
+
+    function refreshMeta(settings) {
+      const activeTools = Object.values(settings.tools).filter((item) => item.enabled !== false).length;
+      const activeServices = Object.values(settings.services).filter((item) => item.enabled !== false).length;
+      enabledCount.textContent = `${activeTools} active tools / ${activeServices} services`;
+      settingsPreview.value = JSON.stringify(settings, null, 2);
+    }
+
+    function render() {
+      const settings = loadSettings();
+      heroPillInput.value = settings.hero.pill;
+      heroTitleInput.value = settings.hero.title;
+      heroSubtitleInput.value = settings.hero.subtitle;
+      platformPillInput.value = settings.platform.pill;
+      platformTitleInput.value = settings.platform.title;
+      platformSubtitleInput.value = settings.platform.subtitle;
+      showAdminButtonInput.checked = false;
+      quickToolsInput.checked = settings.quickTools !== false;
+      platformHubInput.checked = settings.platformHub !== false;
+      pricingInput.checked = settings.pricing !== false;
+
+      serviceControls.innerHTML = Object.entries(settings.services).map(([key, item]) => `
+        <section class="admin-mini-card">
+          <label class="setting-check"><input type="checkbox" data-service-enabled="${key}" ${item.enabled ? 'checked' : ''}> ${key}</label>
+          <input data-service-label="${key}" value="${item.label || ''}" placeholder="Button label">
+          <input data-service-title="${key}" value="${item.title || ''}" placeholder="Small title">
+          <input data-service-note="${key}" value="${item.note || ''}" placeholder="Description">
+          <input data-service-price="${key}" value="${item.price || ''}" placeholder="Price text">
+        </section>
+      `).join('');
+
+      toolControls.innerHTML = Object.entries(settings.tools).map(([key, item]) => `
+        <label class="setting-check admin-tool-check">
+          <input type="checkbox" data-tool-enabled="${key}" ${item.enabled ? 'checked' : ''}>
+          <span>${key}</span>
+          <input data-tool-label="${key}" value="${item.label || key}" aria-label="${key} label">
+        </label>
+      `).join('');
+      featureControls.innerHTML = Object.entries(settings.features).map(([key, item]) => `
+        <section class="admin-mini-card">
+          <label class="setting-check"><input type="checkbox" data-feature-enabled="${key}" ${item.enabled ? 'checked' : ''}> ${key}</label>
+          <input data-feature-title="${key}" value="${item.title || ''}" placeholder="Card title">
+          <input data-feature-note="${key}" value="${item.note || ''}" placeholder="Card note">
+        </section>
+      `).join('');
+      refreshMeta(settings);
+    }
+
+    function collectSettings() {
+      const settings = loadSettings();
+      settings.hero = {
+        pill: heroPillInput.value.trim() || defaultSettings.hero.pill,
+        title: heroTitleInput.value.trim() || defaultSettings.hero.title,
+        subtitle: heroSubtitleInput.value.trim() || defaultSettings.hero.subtitle,
+      };
+      settings.platform = {
+        pill: platformPillInput.value.trim() || defaultSettings.platform.pill,
+        title: platformTitleInput.value.trim() || defaultSettings.platform.title,
+        subtitle: platformSubtitleInput.value.trim() || defaultSettings.platform.subtitle,
+      };
+      settings.showAdminButton = false;
+      settings.quickTools = quickToolsInput.checked;
+      settings.platformHub = platformHubInput.checked;
+      settings.pricing = pricingInput.checked;
+
+      Object.keys(settings.services).forEach((key) => {
+        settings.services[key] = {
+          enabled: document.querySelector(`[data-service-enabled="${key}"]`).checked,
+          label: document.querySelector(`[data-service-label="${key}"]`).value.trim(),
+          title: document.querySelector(`[data-service-title="${key}"]`).value.trim(),
+          note: document.querySelector(`[data-service-note="${key}"]`).value.trim(),
+          price: document.querySelector(`[data-service-price="${key}"]`).value.trim(),
+        };
+      });
+
+      Object.keys(settings.tools).forEach((key) => {
+        settings.tools[key] = {
+          enabled: document.querySelector(`[data-tool-enabled="${key}"]`).checked,
+          label: document.querySelector(`[data-tool-label="${key}"]`).value.trim(),
+        };
+      });
+      Object.keys(settings.features).forEach((key) => {
+        settings.features[key] = {
+          enabled: document.querySelector(`[data-feature-enabled="${key}"]`).checked,
+          title: document.querySelector(`[data-feature-title="${key}"]`).value.trim(),
+          note: document.querySelector(`[data-feature-note="${key}"]`).value.trim(),
+        };
+      });
+      refreshMeta(settings);
+      return settings;
+    }
+
+    function saveSettings(message = 'Saved. Open Public App to see the changes.') {
+      localStorage.setItem('sansaPublicSettings', JSON.stringify(collectSettings()));
+      status.textContent = message;
+      saveState.textContent = 'Saved';
+      localHealth.textContent = 'Saved';
+    }
+
+    localPublicSettings.addEventListener('submit', (event) => {
+      event.preventDefault();
+      saveSettings();
+    });
+
+    resetSettings.addEventListener('click', () => {
+      localStorage.removeItem('sansaPublicSettings');
+      render();
+      status.textContent = 'Reset done.';
+      saveState.textContent = 'Reset';
+    });
+
+    applyPreview.addEventListener('click', () => {
+      saveSettings('Saved. Opening public preview.');
+      window.open('../', '_blank', 'noopener');
+    });
+
+    previewPublic.addEventListener('click', () => window.open('../', '_blank', 'noopener'));
+
+    exportSettings.addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(collectSettings(), null, 2)], { type: 'application/json' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'sansa-public-settings.json';
+      link.click();
+      URL.revokeObjectURL(link.href);
+      status.textContent = 'Settings exported.';
+    });
+
+    importSettings.addEventListener('change', async (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      try {
+        localStorage.setItem('sansaPublicSettings', JSON.stringify(mergeSettings(JSON.parse(await file.text()))));
+        render();
+        status.textContent = 'Imported settings. Click preview to check.';
+      } catch (error) {
+        status.textContent = 'Import failed. Use valid JSON export file.';
+      }
+    });
+
+    checkBackend.addEventListener('click', async () => {
+      backendHealth.textContent = 'Checking...';
+      try {
+        const response = await fetch('https://api.sansaai.in/api/health', { cache: 'no-store' });
+        backendHealth.textContent = response.ok ? 'Connected' : `HTTP ${response.status}`;
+      } catch (error) {
+        backendHealth.textContent = 'Not connected';
+      }
+    });
+
+    checkEngine.addEventListener('click', async () => {
+      engineHealth.textContent = 'Checking...';
+      enginePreview.value = 'Checking SANSA real tool engine...';
+      try {
+        const response = await fetch('https://api.sansaai.in/api/engine/status', { cache: 'no-store' });
+        const data = await response.json();
+        if (!response.ok || data.ok === false) throw new Error(data.error || `HTTP ${response.status}`);
+        const env = data.env || {};
+        const readyProviders = ['openai', 'pdfco', 'cloudconvert', 'convertapi', 'razorpay', 'whatsapp'].filter((key) => env[key]);
+        engineHealth.textContent = 'Connected';
+        engineActionCount.textContent = `${data.totalActions || 0}`;
+        engineCpanel.textContent = data.cpanelSafe ? 'Yes' : 'No';
+        engineProviders.textContent = readyProviders.length ? readyProviders.join(', ') : 'Fallback mode';
+        enginePreview.value = [
+          data.name || 'SANSA Real Tool Engine',
+          '',
+          `Total actions: ${data.totalActions || 0}`,
+          `Groups: ${(data.groups || []).join(', ')}`,
+          `cPanel safe: ${data.cpanelSafe ? 'yes' : 'no'}`,
+          '',
+          'Provider keys:',
+          `OpenAI: ${env.openai ? 'ready' : 'missing'}`,
+          `PDF.co: ${env.pdfco ? 'ready' : 'missing'}`,
+          `CloudConvert: ${env.cloudconvert ? 'ready' : 'missing'}`,
+          `ConvertAPI: ${env.convertapi ? 'ready' : 'missing'}`,
+          `Razorpay: ${env.razorpay ? 'ready' : 'missing'}`,
+          `WhatsApp: ${env.whatsapp ? 'ready' : 'missing'}`,
+          '',
+          'First 20 mapped actions:',
+          ...(data.catalog || []).slice(0, 20).map((item) => `- ${item.id}: ${item.title} -> ${item.endpoint}`),
+        ].join('\n');
+      } catch (error) {
+        engineHealth.textContent = 'Fallback mode';
+        engineActionCount.textContent = 'Local';
+        engineProviders.textContent = 'Missing/offline';
+        enginePreview.value = 'Backend engine status not reachable from this browser. Public site still uses local fallback and backend will work after Node app restart.';
+      }
+    });
+
+    localPublicSettings.addEventListener('input', () => {
+      saveState.textContent = 'Unsaved';
+      refreshMeta(collectSettings());
+    });
+
+    document.querySelectorAll('[data-admin-tab]').forEach((button) => {
+      button.addEventListener('click', () => setActiveTab(button.dataset.adminTab));
+    });
+
+    render();
+    setActiveTab('content');
+  </script>
+</body>
+</html>
