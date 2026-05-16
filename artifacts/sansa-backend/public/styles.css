@@ -949,3 +949,27 @@ html.sansa-public-site #profileButton {
   background: #fff;
   cursor: pointer;
 }
+
+.route-footer.route-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 16px 28px;
+  font-size: 0.9rem;
+}
+
+.route-footer.route-footer-links a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.route-footer.route-footer-links a:hover {
+  text-decoration: underline;
+}
+
+.mvp-wrap .mvp-w-6 {
+  width: 6rem;
+  max-width: 100%;
+}
